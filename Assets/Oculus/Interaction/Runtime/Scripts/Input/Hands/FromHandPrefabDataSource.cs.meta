@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 151f9be47337d9e4daef0b8725e30eab
+labels:
+- oculus_interaction_moved_c02ebbf428f995b45a218658ebd541d6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 82022
+  packageName: Oculus Integration (Deprecated)
+  packageVersion: 57.0.2-deprecated
+  assetPath: Assets/Oculus/Interaction/Runtime/Scripts/Input/Hands/FromHandPrefabDataSource.cs
+  uploadId: 667590
