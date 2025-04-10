@@ -24,9 +24,9 @@ MonoBehaviour:
   m_hasWorldMap: 1
   m_worldMaprelativeSize: 0.5
   m_worldMapRelativeHeightmapPixels: 1
-  m_worldMapPreviewHeightmapResolution: 2049
-  m_worldMapPreviewRange: 1024
-  m_worldMapPreviewTerrainHeight: 1024
+  m_worldMapPreviewHeightmapResolution: 513
+  m_worldMapPreviewRange: 2048
+  m_worldMapPreviewTerrainHeight: 2048
   m_terrainScenes: []
   m_deactivateRuntimePlayer: 0
   m_deactivateRuntimeLighting: 0
