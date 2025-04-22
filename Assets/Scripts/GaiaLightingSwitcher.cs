@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,148 +8,149 @@ public class GaiaLightingSwitcher : MonoBehaviour
     public class LightingPhase
     {
         public string name;
-        public GameObject lightingRoot; // Includes Light and Volume
-        public Volume postProcessingVolume;
+        public GameObject lightingRoot;
+        public Volume volume;
         public Material skyboxMaterial;
-        public float duration; // seconds
+        public float duration = 60f;
     }
 
     public LightingPhase[] phases;
-    public float blendDuration = 2f;
+    public float blendDuration = 5f;
+    public Light directionalLight;
 
     private int currentIndex = 0;
-    private float timer = 0f;
+    private float phaseTimer = 0f;
+    private float blendTimer = 0f;
     private bool isBlending = false;
+
+    private Quaternion startRotation;
+    private Quaternion targetRotation;
+
+    private Color startLightColor;
+    private Color targetLightColor;
+    private float startLightIntensity;
+    private float targetLightIntensity;
+
+    private float currentRotation = 0f;
+    public float skyboxRotationSpeed = 0.5f;
+
+    private Material skyboxInstance; // Unique instance we rotate
 
     void Start()
     {
-        ActivatePhase(0, true);
+        StartPhase(currentIndex);
     }
 
     void Update()
     {
-        if (isBlending) return;
-
-        timer += Time.deltaTime;
-
-        if (timer >= phases[currentIndex].duration)
+        if (!isBlending)
         {
-            int nextIndex = (currentIndex + 1) % phases.Length;
-            StartCoroutine(BlendToPhase(nextIndex));
-            timer = 0f;
+            phaseTimer += Time.deltaTime;
+            if (phaseTimer >= phases[currentIndex].duration)
+            {
+                StartBlendToNext();
+            }
+        }
+        else
+        {
+            blendTimer += Time.deltaTime;
+            float t = Mathf.Clamp01(blendTimer / blendDuration);
+
+            // Light interpolation
+            directionalLight.color = Color.Lerp(startLightColor, targetLightColor, t);
+            directionalLight.intensity = Mathf.Lerp(startLightIntensity, targetLightIntensity, t);
+            directionalLight.transform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+            if (t >= 1f)
+            {
+                EndBlend();
+            }
+        }
+
+        // Skybox rotation every frame
+        currentRotation += skyboxRotationSpeed * Time.deltaTime;
+
+        if (skyboxInstance != null && skyboxInstance.HasProperty("_Rotation"))
+        {
+            skyboxInstance.SetFloat("_Rotation", currentRotation % 360f);
+        }
+    }
+    
+
+    void StartPhase(int index)
+    {
+        currentIndex = index;
+        phaseTimer = 0f;
+
+        var phase = phases[currentIndex];
+
+        // Clone the skybox material so we can rotate it
+        skyboxInstance = new Material(phase.skyboxMaterial);
+        RenderSettings.skybox = skyboxInstance;
+        currentRotation = 0f;
+
+        // Disable all other volumes
+        foreach (var p in phases)
+        {
+            if (p.volume != null)
+                p.volume.enabled = false;
+        }
+
+        // Enable only current phase's volume
+        if (phase.volume != null)
+            phase.volume.enabled = true;
+
+        // Apply directional light from prefab
+        var light = phase.lightingRoot.GetComponentInChildren<Light>();
+        if (light != null)
+        {
+            directionalLight.color = light.color;
+            directionalLight.intensity = light.intensity;
+            directionalLight.transform.rotation = light.transform.rotation;
         }
     }
 
-    IEnumerator BlendToPhase(int nextIndex)
+    void StartBlendToNext()
     {
         isBlending = true;
-        
-        var current = phases[currentIndex];
-        var next = phases[nextIndex];
+        blendTimer = 0f;
 
-        // Create material instances for blending
-        Material currentSkyboxInstance = new Material(current.skyboxMaterial);
-        Material nextSkyboxInstance = new Material(next.skyboxMaterial);
-        
-        // Activate the next phase's lighting
-        next.lightingRoot.SetActive(true);
+        int nextIndex = (currentIndex + 1) % phases.Length;
+        var nextPhase = phases[nextIndex];
 
-        float t = 0f;
-        while (t < blendDuration)
-        {
-            t += Time.deltaTime;
-            float blend = Mathf.Clamp01(t / blendDuration);
+        // Switch skybox immediately
+        RenderSettings.skybox = nextPhase.skyboxMaterial;
 
-            // Create a temporary blended material
-            Material blendedSkybox = new Material(currentSkyboxInstance);
-            
-            // Blend all common properties
-            BlendSkyboxMaterials(blendedSkybox, currentSkyboxInstance, nextSkyboxInstance, blend);
-            
-            // Apply the blended skybox
-            RenderSettings.skybox = blendedSkybox;
-
-            // Blend post-processing volumes
-            if (current.postProcessingVolume != null)
-                current.postProcessingVolume.weight = 1f - blend;
-            if (next.postProcessingVolume != null)
-                next.postProcessingVolume.weight = blend;
-
-            yield return null;
-        }
-
-        // Cleanup
+        // Switch post-processing volume immediately
         foreach (var p in phases)
         {
-            if (p != next)
-            {
-                if (p.lightingRoot != null) p.lightingRoot.SetActive(false);
-                if (p.postProcessingVolume != null) p.postProcessingVolume.weight = 0f;
-            }
+            if (p.volume != null)
+                p.volume.enabled = false;
         }
 
-        // Set final skybox
-        RenderSettings.skybox = new Material(next.skyboxMaterial);
-        
-        currentIndex = nextIndex;
+        if (nextPhase.volume != null)
+            nextPhase.volume.enabled = true;
+
+        // Setup light interpolation
+        var currentLight = phases[currentIndex].lightingRoot.GetComponentInChildren<Light>();
+        var nextLight = nextPhase.lightingRoot.GetComponentInChildren<Light>();
+
+        startLightColor = currentLight.color;
+        targetLightColor = nextLight.color;
+
+        startLightIntensity = currentLight.intensity;
+        targetLightIntensity = nextLight.intensity;
+
+        startRotation = currentLight.transform.rotation;
+        targetRotation = nextLight.transform.rotation;
+    }
+
+    void EndBlend()
+    {
         isBlending = false;
-        DynamicGI.UpdateEnvironment();
-    }
+        blendTimer = 0f;
+        currentIndex = (currentIndex + 1) % phases.Length;
 
-    void BlendSkyboxMaterials(Material target, Material a, Material b, float blend)
-    {
-        // Blend all float properties
-        var floatProperties = a.GetFloatPropertyNames();
-        foreach (var prop in floatProperties)
-        {
-            if (b.HasProperty(prop))
-            {
-                float valA = a.GetFloat(prop);
-                float valB = b.GetFloat(prop);
-                target.SetFloat(prop, Mathf.Lerp(valA, valB, blend));
-            }
-        }
-
-        // Blend all color properties
-        var colorProperties = a.GetColorPropertyNames();
-        foreach (var prop in colorProperties)
-        {
-            if (b.HasProperty(prop))
-            {
-                Color colA = a.GetColor(prop);
-                Color colB = b.GetColor(prop);
-                target.SetColor(prop, Color.Lerp(colA, colB, blend));
-            }
-        }
-
-        // Blend all texture properties (if they're the same texture)
-        var textureProperties = a.GetTexturePropertyNames();
-        foreach (var prop in textureProperties)
-        {
-            if (b.HasProperty(prop) && a.GetTexture(prop) == b.GetTexture(prop))
-            {
-                target.SetTexture(prop, a.GetTexture(prop));
-            }
-        }
-    }
-
-    void ActivatePhase(int index, bool immediate)
-    {
-        foreach (var p in phases)
-        {
-            p.lightingRoot.SetActive(false);
-            if (p.postProcessingVolume != null)
-                p.postProcessingVolume.weight = 0f;
-        }
-
-        var phase = phases[index];
-        phase.lightingRoot.SetActive(true);
-        if (phase.postProcessingVolume != null)
-            phase.postProcessingVolume.weight = 1f;
-
-        RenderSettings.skybox = new Material(phase.skyboxMaterial);
-        currentIndex = index;
-
-        if (immediate) DynamicGI.UpdateEnvironment();
+        StartPhase(currentIndex);
     }
 }
