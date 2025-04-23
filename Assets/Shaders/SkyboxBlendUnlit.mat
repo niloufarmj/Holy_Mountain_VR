@@ -62,7 +62,7 @@ Material:
     - _Blend: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Rotation: 3.0112948
+    - _Rotation: 2.735156
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
