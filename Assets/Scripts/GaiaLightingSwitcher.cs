@@ -8,10 +8,10 @@ public class GaiaLightingSwitcher : MonoBehaviour
     public class LightingPhase
     {
         public string name;
-        public GameObject lightingRoot;
+        public Light lighting;
         public Volume volume;
         public Material skyboxMaterial; // Only used to extract Cubemap
-        public Cubemap skyboxCubemap; // <--- Add this
+        public Cubemap skyboxCubemap;
         public float duration = 60f;
     }
 
@@ -41,6 +41,10 @@ public class GaiaLightingSwitcher : MonoBehaviour
     private Cubemap currentCubemap;
     private Cubemap nextCubemap;
 
+    // NEW: References to currently blending volumes
+    private Volume currentVolume;
+    private Volume nextVolume;
+
     void Start()
     {
         StartPhase(currentIndex);
@@ -61,7 +65,7 @@ public class GaiaLightingSwitcher : MonoBehaviour
             blendTimer += Time.deltaTime;
             float t = Mathf.Clamp01(blendTimer / blendDuration);
 
-            // Blend light properties
+            // Blend directional light properties
             directionalLight.color = Color.Lerp(startLightColor, targetLightColor, t);
             directionalLight.intensity = Mathf.Lerp(startLightIntensity, targetLightIntensity, t);
             directionalLight.transform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
@@ -70,13 +74,17 @@ public class GaiaLightingSwitcher : MonoBehaviour
             blendedSkyboxMaterial.SetFloat("_Blend", t);
             blendedSkyboxMaterial.SetFloat("_Rotation", currentRotation % 360f);
 
+            // Blend post-processing volumes
+            if (currentVolume != null) currentVolume.weight = 1f - t;
+            if (nextVolume != null) nextVolume.weight = t;
+
             if (t >= 1f)
             {
                 EndBlend();
             }
         }
 
-        // Rotate skybox continuously
+        // Skybox rotation every frame
         currentRotation += skyboxRotationSpeed * Time.deltaTime;
         if (blendedSkyboxMaterial != null)
         {
@@ -91,27 +99,27 @@ public class GaiaLightingSwitcher : MonoBehaviour
 
         var phase = phases[currentIndex];
 
-        // Use the current phase's cubemap as both A and B initially
-        currentCubemap = phases[currentIndex].skyboxCubemap;
+        // Set skybox material and cubemap
+        currentCubemap = phase.skyboxCubemap;
         blendedSkyboxMaterial.SetTexture("_SkyboxA", currentCubemap);
         blendedSkyboxMaterial.SetTexture("_SkyboxB", currentCubemap);
         blendedSkyboxMaterial.SetFloat("_Blend", 0f);
         blendedSkyboxMaterial.SetFloat("_Rotation", currentRotation % 360f);
         RenderSettings.skybox = blendedSkyboxMaterial;
 
-        // Disable all other volumes
+        // Enable all volumes (so weights can be blended when needed)
         foreach (var p in phases)
         {
             if (p.volume != null)
-                p.volume.enabled = false;
+                p.volume.enabled = true;
         }
 
-        // Enable current volume
-        if (phase.volume != null)
-            phase.volume.enabled = true;
+        // Set this phase's volume as active
+        currentVolume = phase.volume;
+        currentVolume.weight = 1f;
 
         // Apply directional light from prefab
-        var light = phase.lightingRoot.GetComponentInChildren<Light>();
+        var light = phase.lighting;
         if (light != null)
         {
             directionalLight.color = light.color;
@@ -128,28 +136,23 @@ public class GaiaLightingSwitcher : MonoBehaviour
         int nextIndex = (currentIndex + 1) % phases.Length;
         var nextPhase = phases[nextIndex];
 
-        // Extract cubemap from material
+        // Skybox blending setup
         currentCubemap = phases[currentIndex].skyboxCubemap;
         nextCubemap = nextPhase.skyboxCubemap;
-
         blendedSkyboxMaterial.SetTexture("_SkyboxA", currentCubemap);
         blendedSkyboxMaterial.SetTexture("_SkyboxB", nextCubemap);
         blendedSkyboxMaterial.SetFloat("_Blend", 0f);
         RenderSettings.skybox = blendedSkyboxMaterial;
 
-        // Disable all other volumes
-        foreach (var p in phases)
-        {
-            if (p.volume != null)
-                p.volume.enabled = false;
-        }
+        // Post-processing volume blending setup
+        currentVolume = phases[currentIndex].volume;
+        nextVolume = nextPhase.volume;
+        if (currentVolume != null) currentVolume.weight = 1f;
+        if (nextVolume != null) nextVolume.weight = 0f;
 
-        if (nextPhase.volume != null)
-            nextPhase.volume.enabled = true;
-
-        // Setup light blending
-        var currentLight = phases[currentIndex].lightingRoot.GetComponentInChildren<Light>();
-        var nextLight = nextPhase.lightingRoot.GetComponentInChildren<Light>();
+        // Setup directional light interpolation
+        var currentLight = phases[currentIndex].lighting;
+        var nextLight = nextPhase.lighting;
 
         startLightColor = currentLight.color;
         targetLightColor = nextLight.color;
@@ -168,25 +171,5 @@ public class GaiaLightingSwitcher : MonoBehaviour
         currentIndex = (currentIndex + 1) % phases.Length;
 
         StartPhase(currentIndex);
-    }
-
-    // Extracts Cubemap from skybox material
-    Cubemap ExtractCubemap(Material mat)
-    {
-        if (mat.HasProperty("_Tex") && mat.GetTexture("_Tex") is Cubemap cube)
-        {
-            return cube;
-        }
-        else if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") is Cubemap mainCube)
-        {
-            return mainCube;
-        }
-        else if (mat.HasProperty("_TexCube") && mat.GetTexture("_TexCube") is Cubemap texCube)
-        {
-            return texCube;
-        }
-
-        Debug.LogWarning("No cubemap found on skybox material: " + mat.name);
-        return null;
     }
 }
