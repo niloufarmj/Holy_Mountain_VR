@@ -1991,30 +1991,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5061594518299749713, guid: 6d89f1e103fe0944ab5284132b4bfcd3, type: 3}
   m_PrefabInstance: {fileID: 771748071}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &76882587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
-    scale: {x: 4.292864, y: 1, z: 4.292864}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Billow
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.7099999785423279,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.7400000095367432,"warpIterations":4.610000133514404,"warpStrength":0.3868248760700226,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1 &78921945
 GameObject:
   m_ObjectHideFlags: 0
@@ -23098,29 +23074,35 @@ MonoBehaviour:
     lightingRoot: {fileID: 1749989371}
     volume: {fileID: 2010638333}
     skyboxMaterial: {fileID: 2100000, guid: 8e85eb7be1bf0a046bb216452155c0b2, type: 2}
+    skyboxCubemap: {fileID: 8900000, guid: 60995c357a320a4488263256076c8893, type: 3}
     duration: 20
   - name: Day
     lightingRoot: {fileID: 87792382}
     volume: {fileID: 453739261}
     skyboxMaterial: {fileID: 2100000, guid: 4a21e9ac94e26d946b4f4a6b32739c25, type: 2}
+    skyboxCubemap: {fileID: 8900000, guid: 2e72a76db2572184ba807091fe4e4d82, type: 3}
     duration: 30
   - name: LegacyDay
     lightingRoot: {fileID: 210987840}
     volume: {fileID: 2000158110}
     skyboxMaterial: {fileID: 2100000, guid: dd0abdc5577a90d4cb2924bba3bb8303, type: 2}
+    skyboxCubemap: {fileID: 8900000, guid: 7f366e2ef5b515746af2ea5425c50daf, type: 3}
     duration: 30
   - name: Evening
     lightingRoot: {fileID: 1122838416}
     volume: {fileID: 494178250}
     skyboxMaterial: {fileID: 2100000, guid: b64ffab03a280d14096089e572dfab92, type: 2}
+    skyboxCubemap: {fileID: 8900000, guid: 8742d234a0f593b49a0b5440c3fe89f9, type: 3}
     duration: 20
   - name: Nigt
     lightingRoot: {fileID: 1760951437}
     volume: {fileID: 20424249}
     skyboxMaterial: {fileID: 2100000, guid: 95dd4567376da76429d0166c7376415c, type: 2}
+    skyboxCubemap: {fileID: 8900000, guid: 9780b565a77e33a458f48949179057ba, type: 3}
     duration: 50
   blendDuration: 15
   directionalLight: {fileID: 395462580}
+  blendedSkyboxMaterial: {fileID: 2100000, guid: 92e3f839e2727904aba5099226737e72, type: 2}
   skyboxRotationSpeed: 0.5
 --- !u!4 &300043041 stripped
 Transform:
@@ -77529,7 +77511,7 @@ MonoBehaviour:
       m_warpIterations: 4.61
       m_warpStrength: 0.38682488
       m_warpOffset: {x: 222.59402, y: -401.83527, z: 842.6193, w: 0}
-    m_noiseSettings: {fileID: 76882587}
+    m_noiseSettings: {fileID: 1794610485}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -87694,6 +87676,30 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2177054755852629022, guid: 8a91754fe033b6e43b3701eeb9589cdc, type: 3}
   m_PrefabInstance: {fileID: 587554773}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1794610485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
+    scale: {x: 4.292864, y: 1, z: 4.292864}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Billow
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.7099999785423279,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.7400000095367432,"warpIterations":4.610000133514404,"warpStrength":0.3868248760700226,"warpEnabled":true,"warpExpanded":true}'
 --- !u!4 &1794945651 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4846720859247739437, guid: 7b2aa901361134c41ab5d7d475e237e0, type: 3}
