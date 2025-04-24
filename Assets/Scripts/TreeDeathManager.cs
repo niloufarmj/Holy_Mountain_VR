@@ -69,14 +69,64 @@ public class TreeDeathManager : MonoBehaviour
         // 2. 2 ثانیه صبر کن تا هاله دیده شه
         yield return new WaitForSeconds(2f);
 
-        // 3. پارتیکل رو غیرفعال یا destroy کن
+        // 3. پارتیکل رو حذف کن
         if (aura != null)
             Destroy(aura.gameObject);
 
-        // 4. حالا انیمیشن افتادن درخت رو پخش کن
+        // 4. پخش انیمیشن افتادن درخت
         Animator anim = treeGO.GetComponent<Animator>();
         if (anim != null)
             anim.Play("TreeFall");
+
+        // 5. صبر کن تا انیمیشن تموم شه (فرض: 2.5 ثانیه)
+        yield return new WaitForSeconds(2.5f);
+
+        // 6. شروع Dissolve روی LOD3
+        Transform lod3 = treeGO.transform.Find("PW_Tree_Spruce_04 Variant/PW_Tree_Spruce_01_04_LOD3");
+        if (lod3 != null)
+        {
+            Renderer renderer = lod3.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer));
+                yield break; // ادامه‌ی حذف داخل اون Coroutine انجام میشه
+            }
+        }
+
+        // اگر چیزی پیدا نشد، درختو حذف کن
+        Destroy(treeGO);
+    }
+
+    IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, float duration = 2f)
+    {
+        float start = 0.3f;
+        float end = 1f;
+        float t = 0f;
+
+        Material[] materials = renderer.materials;
+
+        while (t < duration)
+        {
+            float value = Mathf.Lerp(start, end, t / duration);
+            foreach (var mat in materials)
+            {
+                if (mat.HasProperty("_Cutoff"))
+                    mat.SetFloat("_Cutoff", value);
+            }
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        // مطمئن شو Dissolve کامل شده
+        foreach (var mat in materials)
+        {
+            if (mat.HasProperty("_Cutoff"))
+                mat.SetFloat("_Cutoff", end);
+        }
+
+        // حذف کامل آبجکت
+        Destroy(treeGO);
     }
 
 }
