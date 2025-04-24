@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: f998d3b5c50b283478ecc9cce87d8e91
+timeCreated: 1495061858
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 123865
+  packageName: Simple Dissolve Shader
+  packageVersion: 1.1
+  assetPath: Assets/DissolveEmissionShader/DissolveEmission.shader
+  uploadId: 298604

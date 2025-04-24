@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 47acb45d5ce5dde478505f6189ae121b
+timeCreated: 1495061844
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 123865
+  packageName: Simple Dissolve Shader
+  packageVersion: 1.1
+  assetPath: Assets/DissolveEmissionShader/DissolveEmissionDemoScene.unity
+  uploadId: 298604

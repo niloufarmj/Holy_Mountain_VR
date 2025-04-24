@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class TreeDeathManager : MonoBehaviour
@@ -46,12 +47,7 @@ public class TreeDeathManager : MonoBehaviour
         if (animatedTreePrefab != null)
         {
             GameObject newTree = Instantiate(animatedTreePrefab, worldPos, rotation);
-
-            Animator anim = newTree.GetComponent<Animator>();
-            if (anim != null)
-            {
-                anim.Play("TreeFall");
-            }
+            StartCoroutine(AnimateFallingTree(newTree));
         }
 
         // حذف درخت از Terrain
@@ -62,4 +58,25 @@ public class TreeDeathManager : MonoBehaviour
         Debug.Log("A tree has died. Remaining: " + treeList.Count);
 
     }
+
+    IEnumerator AnimateFallingTree(GameObject treeGO)
+    {
+        // 1. پیدا کردن پارتیکل
+        Transform aura = treeGO.transform.Find("CorruptionAura");
+        if (aura != null)
+            aura.gameObject.SetActive(true);
+
+        // 2. 2 ثانیه صبر کن تا هاله دیده شه
+        yield return new WaitForSeconds(2f);
+
+        // 3. پارتیکل رو غیرفعال یا destroy کن
+        if (aura != null)
+            Destroy(aura.gameObject);
+
+        // 4. حالا انیمیشن افتادن درخت رو پخش کن
+        Animator anim = treeGO.GetComponent<Animator>();
+        if (anim != null)
+            anim.Play("TreeFall");
+    }
+
 }
