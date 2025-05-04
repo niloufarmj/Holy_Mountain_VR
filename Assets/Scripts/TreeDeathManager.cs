@@ -11,6 +11,8 @@ public class TreeDeathManager : MonoBehaviour
     private List<TreeInstance> treeList;
     [HideInInspector] public TerrainData clonedData;
 
+    public GameObject seedPrefab;
+
     void Start()
     {
         // Clone terrain data to avoid modifying original in Editor
@@ -81,6 +83,12 @@ public class TreeDeathManager : MonoBehaviour
         // 5. صبر کن تا انیمیشن تموم شه (فرض: 2.5 ثانیه)
         yield return new WaitForSeconds(2.5f);
 
+        LODGroup lodGroup = treeGO.GetComponentInChildren<LODGroup>();
+        if (lodGroup != null)
+        {
+            lodGroup.ForceLOD(3); // یا هر LODی که می‌خوای Dissolve بشه
+        }
+
         // 6. شروع Dissolve روی LOD3
         Transform lod3 = treeGO.transform.Find("PW_Tree_Spruce_04 Variant/PW_Tree_Spruce_01_04_LOD3");
         if (lod3 != null)
@@ -125,7 +133,15 @@ public class TreeDeathManager : MonoBehaviour
                 mat.SetFloat("_Cutoff", end);
         }
 
-        // حذف کامل آبجکت
+        // Instantiate Seed در محل درخت
+        if (seedPrefab != null)
+        {
+            Vector3 seedPos = renderer.bounds.center;
+            seedPos = seedPos - Vector3.up * 0.5f;
+            Instantiate(seedPrefab, seedPos, Quaternion.identity);
+        }
+
+       
         Destroy(treeGO);
     }
 
