@@ -172,4 +172,10 @@ public class GaiaLightingSwitcher : MonoBehaviour
 
         StartPhase(currentIndex);
     }
+
+    public bool IsNight()
+    {
+        var currentPhase = phases[currentIndex];
+        return currentPhase.name.ToLower().Contains("night") || currentPhase.name.ToLower().Contains("sleep");
+    }
 }
