@@ -56,6 +56,6 @@ public class SeedCollectible : MonoBehaviour
             Debug.LogWarning("[SeedCollectible] GameStats not found!");
         }
 
-        Destroy(gameObject);
+        Destroy(transform.parent.gameObject);
     }
 }

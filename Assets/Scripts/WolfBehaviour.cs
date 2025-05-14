@@ -21,7 +21,6 @@ public class SimpleWolfAI : MonoBehaviour
         PickNewDirection();
         actionTimer = actionInterval;
         dirTimer = changeDirInterval;
-        Debug.Log("WolfAI started.");
     }
 
     void Update()
@@ -46,7 +45,6 @@ public class SimpleWolfAI : MonoBehaviour
             animator.SetBool("IsSleeping", true);
             animator.SetBool("IsSitting", false);
             animator.SetFloat("Speed", 0);
-            Debug.Log("It's night (from Gaia). Wolf is sleeping.");
             return;
         }
 
@@ -68,7 +66,7 @@ public class SimpleWolfAI : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
         }
 
-        Debug.Log("Wolf moving. Speed: " + moveDirection.magnitude.ToString("F2"));
+        
 
         if (actionTimer <= 0f)
         {
@@ -78,13 +76,11 @@ public class SimpleWolfAI : MonoBehaviour
             {
                 moveDirection = Vector3.zero;
                 animator.SetBool("IsSitting", true);
-                Debug.Log("Wolf decided to sit.");
             }
             else
             {
                 animator.SetBool("IsSitting", false);
                 PickNewDirection();
-                Debug.Log("Wolf decided to walk/run.");
             }
 
             actionTimer = Random.Range(5f, 10f);
@@ -94,7 +90,6 @@ public class SimpleWolfAI : MonoBehaviour
         {
             PickNewDirection();
             dirTimer = Random.Range(3f, 6f);
-            Debug.Log("Wolf picked new direction.");
         }
     }
 
@@ -128,7 +123,6 @@ public class SimpleWolfAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
 
 
-        Debug.Log(isRunning < 0.3f ? "Wolf will run." : "Wolf will walk.");
     }
 
     void ResumeMovement()
