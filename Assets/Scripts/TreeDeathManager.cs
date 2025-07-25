@@ -19,6 +19,7 @@ public class TreeDeathManager : MonoBehaviour
         terrain.terrainData = clonedData;
 
         treeList = new List<TreeInstance>(clonedData.treeInstances);
+        treeList = treeList.FindAll(tree => tree.prototypeIndex >= 0 && tree.prototypeIndex <= 3);
         InvokeRepeating("KillRandomTree", interval, interval);
 
 
@@ -55,7 +56,7 @@ public class TreeDeathManager : MonoBehaviour
 
         // Instantiate animated prefab مربوط به نوع درخت
         GameObject newTree = Instantiate(treeType.animatedTreePrefab, worldPos, rotation);
-        StartCoroutine(AnimateFallingTree(newTree));
+        StartCoroutine(AnimateFallingTree(newTree, prototypeIndex));
 
         // حذف درخت از Terrain
         treeList.RemoveAt(index);
@@ -65,7 +66,7 @@ public class TreeDeathManager : MonoBehaviour
     }
 
 
-    IEnumerator AnimateFallingTree(GameObject treeGO)
+    IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex)
     {
         // 1. پیدا کردن پارتیکل
         Transform aura = treeGO.transform.Find("CorruptionAura");
@@ -111,7 +112,7 @@ public class TreeDeathManager : MonoBehaviour
             Renderer renderer = lod3.GetComponent<Renderer>();
             if (renderer != null)
             {
-                StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer));
+                StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer, prototypeIndex));
                 yield break; // ادامه‌ی حذف داخل اون Coroutine انجام میشه
             }
         }
@@ -120,7 +121,7 @@ public class TreeDeathManager : MonoBehaviour
         Destroy(treeGO);
     }
 
-    IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, float duration = 2f)
+    IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, float duration = 2f)
     {
         float start = 0.3f;
         float end = 1f;
@@ -151,12 +152,25 @@ public class TreeDeathManager : MonoBehaviour
         // Instantiate Seed در محل درخت
         if (seedPrefab != null)
         {
-            Bounds bounds = renderer.bounds;
+            Vector3 rayOrigin = renderer.bounds.center + Vector3.up * 5f; // از بالای درخت نگاه کن
+            Ray ray = new Ray(rayOrigin, Vector3.down);
 
-            // پایین‌ترین نقطه مش + مختصات مرکزی افقی
-            Vector3 seedPos = new Vector3(bounds.center.x, bounds.min.y + 0.1f, bounds.center.z);
+            if (Physics.Raycast(ray, out RaycastHit hitInfo, 10f))
+            {
+                Vector3 spawnPos = hitInfo.point + Vector3.up * 0.1f; // کمی بالاتر از زمین
+                GameObject seed = Instantiate(seedPrefab, spawnPos, Quaternion.identity);
 
-            Instantiate(seedPrefab, seedPos, Quaternion.identity);
+                // 👇 ست کردن prototypeIndex
+                SeedCollectible seedScript = seed.GetComponentInChildren<SeedCollectible>();
+                if (seedScript != null)
+                {
+                    seedScript.prototypeIndex = prototypeIndex; // از TreeInstance مرده گرفته میشه
+                }
+            }
+            else
+            {
+                Debug.LogWarning("🌱 [TreeDeathManager] Raycast برای یافتن زمین شکست خورد.");
+            }
         }
 
        

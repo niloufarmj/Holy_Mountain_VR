@@ -5,6 +5,9 @@ public class SeedCollectible : MonoBehaviour
 {
     private bool playerInRange = false;
 
+    [Tooltip("نوع درختی که این بذر متعلق به آن است.")]
+    public int prototypeIndex;
+
     void OnTriggerEnter(Collider other)
     {
         Debug.Log($"[SeedCollectible] OnTriggerEnter: {other.name}");
@@ -48,7 +51,7 @@ public class SeedCollectible : MonoBehaviour
         GameStats stats = FindObjectOfType<GameStats>();
         if (stats != null)
         {
-            stats.AddSeed();
+            stats.AddSeed(prototypeIndex);
             Debug.Log("[SeedCollectible] Seed count increased.");
         }
         else

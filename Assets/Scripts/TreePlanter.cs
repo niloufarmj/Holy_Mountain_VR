@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class TreePlanter : MonoBehaviour
 {
-    public GameObject seedTreePrefab;
     public Transform controllerRayOrigin;
     public float rayDistance = 50f;
     public LayerMask groundLayer;
     public Terrain targetTerrain;
-    public int treePrototypeIndex = 0;
 
     private GameStats stats;
+
+    [HideInInspector] public int selectedPrototypeIndex = -1; // از UI ست می‌شه
 
     void Start()
     {
@@ -22,29 +22,42 @@ public class TreePlanter : MonoBehaviour
 
     void Update()
     {
-        if (OVRInput.GetDown(OVRInput.Button.Two))
+        if (OVRInput.GetDown(OVRInput.Button.Two)) // دکمه B برای کاشت
         {
-            if (stats == null || seedTreePrefab == null || targetTerrain == null) return;
-            if (!HasSeeds()) return;
-
-            Ray ray = new Ray(controllerRayOrigin.position, controllerRayOrigin.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, rayDistance, groundLayer))
-            {
-                GameObject tree = Instantiate(seedTreePrefab, hit.point, Quaternion.identity);
-                TreeGrower grower = tree.GetComponent<TreeGrower>();
-                if (grower != null)
-                {
-                    grower.StartGrowth();
-                    grower.OnGrowthComplete += HandleTreeFullyGrown;
-                }
-
-                SubtractSeed();
-                stats.AddTree();
-            }
+            TryPlantSelectedTree();
         }
     }
 
-    void HandleTreeFullyGrown(TreeGrower grower)
+    public void TryPlantSelectedTree()
+    {
+        if (stats == null || targetTerrain == null) return;
+        if (selectedPrototypeIndex < 0) return;
+        if (!stats.HasSeed(selectedPrototypeIndex)) return;
+
+        Ray ray = new Ray(controllerRayOrigin.position, controllerRayOrigin.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, rayDistance, groundLayer))
+        {
+            TreeTypeData data = TreeDatabase.Instance.GetTreeType(selectedPrototypeIndex);
+            if (data == null || data.growableTreePrefab == null)
+            {
+                Debug.LogWarning($"[TreePlanter] No prefab found for prototype {selectedPrototypeIndex}");
+                return;
+            }
+
+            GameObject tree = Instantiate(data.growableTreePrefab, hit.point, Quaternion.identity);
+            TreeGrower grower = tree.GetComponent<TreeGrower>();
+            if (grower != null)
+            {
+                grower.StartGrowth();
+                grower.OnGrowthComplete += g => HandleTreeFullyGrown(g, selectedPrototypeIndex);
+            }
+
+            stats.UseSeed(selectedPrototypeIndex);
+            stats.AddTree();
+        }
+    }
+
+    void HandleTreeFullyGrown(TreeGrower grower, int prototypeIndex)
     {
         Vector3 worldPos = grower.transform.position;
         Vector3 terrainPos = worldPos - targetTerrain.transform.position;
@@ -58,7 +71,7 @@ public class TreePlanter : MonoBehaviour
         TreeInstance newTree = new TreeInstance
         {
             position = normalizedPos,
-            prototypeIndex = treePrototypeIndex,
+            prototypeIndex = prototypeIndex,
             widthScale = 1f,
             heightScale = 1f,
             color = Color.white,
@@ -67,19 +80,5 @@ public class TreePlanter : MonoBehaviour
 
         targetTerrain.AddTreeInstance(newTree);
         Destroy(grower.gameObject);
-    }
-
-    bool HasSeeds()
-    {
-        var seedField = typeof(GameStats).GetField("seedCount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return (int)seedField.GetValue(stats) > 0;
-    }
-
-    void SubtractSeed()
-    {
-        var seedField = typeof(GameStats).GetField("seedCount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        int currentCount = (int)seedField.GetValue(stats);
-        seedField.SetValue(stats, currentCount - 1);
-        stats.seedsText.text = $"Seeds Collected: {currentCount - 1}";
     }
 }
