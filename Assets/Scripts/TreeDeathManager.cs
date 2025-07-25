@@ -12,6 +12,9 @@ public class TreeDeathManager : MonoBehaviour
 
     public GameObject seedPrefab;
 
+    public Transform vrPlayer;
+
+
     void Start()
     {
         // Clone terrain data to avoid modifying original in Editor
@@ -20,25 +23,44 @@ public class TreeDeathManager : MonoBehaviour
 
         treeList = new List<TreeInstance>(clonedData.treeInstances);
         treeList = treeList.FindAll(tree => tree.prototypeIndex >= 0 && tree.prototypeIndex <= 3);
-        InvokeRepeating("KillRandomTree", interval, interval);
+        InvokeRepeating("KillNearbyRandomTree", interval, interval);
 
 
         Debug.Log(treeList.Count);
     }
 
-    void KillRandomTree()
+    void KillNearbyRandomTree()
     {
         if (treeList.Count == 0)
         {
-            CancelInvoke("KillRandomTree");
+            CancelInvoke("KillNearbyRandomTree");
             Debug.Log("✅ all trees were removed");
             return;
         }
 
-        int index = Random.Range(0, treeList.Count);
-        TreeInstance dyingTree = treeList[index];
+        Vector3 playerPos = vrPlayer.position;
+        float radius = 30f;
 
-        // گرفتن نوع درخت
+        List<int> nearbyIndices = new List<int>();
+
+        for (int i = 0; i < treeList.Count; i++)
+        {
+            Vector3 worldPos = Vector3.Scale(treeList[i].position, terrain.terrainData.size) + terrain.transform.position;
+            float distance = Vector3.Distance(playerPos, worldPos);
+
+            if (distance <= radius)
+                nearbyIndices.Add(i);
+        }
+
+        if (nearbyIndices.Count == 0)
+        {
+            Debug.Log("⛔ No trees found within radius of player.");
+            return;
+        }
+
+        int randomIndex = nearbyIndices[Random.Range(0, nearbyIndices.Count)];
+        TreeInstance dyingTree = treeList[randomIndex];
+
         int prototypeIndex = dyingTree.prototypeIndex;
         TreeTypeData treeType = TreeDatabase.Instance.GetTreeType(prototypeIndex);
         if (treeType == null || treeType.animatedTreePrefab == null)
@@ -47,24 +69,18 @@ public class TreeDeathManager : MonoBehaviour
             return;
         }
 
-        // تبدیل مختصات نسبی به مختصات جهانی
-        Vector3 worldPos = Vector3.Scale(dyingTree.position, terrain.terrainData.size) + terrain.transform.position;
-
-        // محاسبه چرخش Y
+        Vector3 treeWorldPos = Vector3.Scale(dyingTree.position, terrain.terrainData.size) + terrain.transform.position;
         float yRotation = dyingTree.rotation * 360f;
         Quaternion rotation = Quaternion.Euler(0, yRotation + 180, 0);
 
-        // Instantiate animated prefab مربوط به نوع درخت
-        GameObject newTree = Instantiate(treeType.animatedTreePrefab, worldPos, rotation);
+        GameObject newTree = Instantiate(treeType.animatedTreePrefab, treeWorldPos, rotation);
         StartCoroutine(AnimateFallingTree(newTree, prototypeIndex));
 
-        // حذف درخت از Terrain
-        treeList.RemoveAt(index);
+        treeList.RemoveAt(randomIndex);
         clonedData.treeInstances = treeList.ToArray();
 
-        Debug.Log("A tree has died. Remaining: " + treeList.Count);
+        Debug.Log($"🌳 A random tree near player has died. Remaining trees: {treeList.Count}");
     }
-
 
     IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex)
     {
