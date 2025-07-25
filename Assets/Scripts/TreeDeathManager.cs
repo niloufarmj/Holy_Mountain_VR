@@ -6,7 +6,6 @@ public class TreeDeathManager : MonoBehaviour
 {
     public Terrain terrain;
     public float interval = 10f;
-    public GameObject animatedTreePrefab; // همون Prefab که انیمیشن "TreeFall" روشه
 
     private List<TreeInstance> treeList;
     [HideInInspector] public TerrainData clonedData;
@@ -38,6 +37,15 @@ public class TreeDeathManager : MonoBehaviour
         int index = Random.Range(0, treeList.Count);
         TreeInstance dyingTree = treeList[index];
 
+        // گرفتن نوع درخت
+        int prototypeIndex = dyingTree.prototypeIndex;
+        TreeTypeData treeType = TreeDatabase.Instance.GetTreeType(prototypeIndex);
+        if (treeType == null || treeType.animatedTreePrefab == null)
+        {
+            Debug.LogWarning($"[TreeDeathManager] No animated prefab found for prototype index {prototypeIndex}");
+            return;
+        }
+
         // تبدیل مختصات نسبی به مختصات جهانی
         Vector3 worldPos = Vector3.Scale(dyingTree.position, terrain.terrainData.size) + terrain.transform.position;
 
@@ -45,21 +53,17 @@ public class TreeDeathManager : MonoBehaviour
         float yRotation = dyingTree.rotation * 360f;
         Quaternion rotation = Quaternion.Euler(0, yRotation + 180, 0);
 
-        // Instantiate Prefab با انیمیشن
-        if (animatedTreePrefab != null)
-        {
-            GameObject newTree = Instantiate(animatedTreePrefab, worldPos, rotation);
-            StartCoroutine(AnimateFallingTree(newTree));
-        }
+        // Instantiate animated prefab مربوط به نوع درخت
+        GameObject newTree = Instantiate(treeType.animatedTreePrefab, worldPos, rotation);
+        StartCoroutine(AnimateFallingTree(newTree));
 
         // حذف درخت از Terrain
         treeList.RemoveAt(index);
         clonedData.treeInstances = treeList.ToArray();
 
-
         Debug.Log("A tree has died. Remaining: " + treeList.Count);
-
     }
+
 
     IEnumerator AnimateFallingTree(GameObject treeGO)
     {
@@ -90,7 +94,18 @@ public class TreeDeathManager : MonoBehaviour
         }
 
         // 6. شروع Dissolve روی LOD3
-        Transform lod3 = treeGO.transform.Find("PW_Tree_Spruce_04 Variant/PW_Tree_Spruce_01_04_LOD3");
+        // دسترسی به LOD3 بدون اسم
+        Transform lod3 = null;
+
+        if (treeGO.transform.childCount >= 1)
+        {
+            Transform modelRoot = treeGO.transform.GetChild(0); // فرزند دوم (مدل درخت)
+            int lastIndex = modelRoot.childCount - 1;
+
+            if (lastIndex >= 0)
+                lod3 = modelRoot.GetChild(lastIndex); // آخرین بچه = LOD3
+        }
+
         if (lod3 != null)
         {
             Renderer renderer = lod3.GetComponent<Renderer>();
@@ -136,8 +151,11 @@ public class TreeDeathManager : MonoBehaviour
         // Instantiate Seed در محل درخت
         if (seedPrefab != null)
         {
-            Vector3 seedPos = renderer.bounds.center;
-            seedPos = seedPos - Vector3.up * 0.5f;
+            Bounds bounds = renderer.bounds;
+
+            // پایین‌ترین نقطه مش + مختصات مرکزی افقی
+            Vector3 seedPos = new Vector3(bounds.center.x, bounds.min.y + 0.1f, bounds.center.z);
+
             Instantiate(seedPrefab, seedPos, Quaternion.identity);
         }
 
