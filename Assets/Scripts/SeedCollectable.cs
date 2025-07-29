@@ -36,9 +36,21 @@ public class SeedCollectible : MonoBehaviour
         {
             Debug.Log("[SeedCollectible] Player in range. Waiting for input...");
 
-            if (OVRInput.GetDown(OVRInput.Button.One)) // دکمه A
+            // Check VR input or keyboard fallback
+            bool isCollectPressed = false;
+
+            if (OVRInput.IsControllerConnected(OVRInput.Controller.RTouch))
             {
-                Debug.Log("[SeedCollectible] Button A pressed. Collecting...");
+                isCollectPressed = OVRInput.GetDown(OVRInput.Button.One); // A button on Oculus
+            }
+            else
+            {
+                isCollectPressed = Input.GetKeyDown(KeyCode.E); // fallback to E key on keyboard
+            }
+
+            if (isCollectPressed)
+            {
+                Debug.Log("[SeedCollectible] Collect input detected. Collecting...");
                 Collect();
             }
         }

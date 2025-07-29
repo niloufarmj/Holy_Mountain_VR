@@ -38,7 +38,7 @@ public class SeedInventoryUI : MonoBehaviour
 
     void Update()
     {
-        if (OVRInput.GetDown(OVRInput.Button.Two)) // B
+        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P)) // B
         {
             if (!panelOpen)
                 OpenPanel();

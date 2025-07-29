@@ -42,6 +42,10 @@ public class AnimalWander : MonoBehaviour
     private float walkAnimChangeTimer;
     private float currentAnimVariant = -1f;
 
+    private Transform targetTree = null;
+    public float targetPriorityWeight = 0.7f; // بین ۰ تا ۱، چقدر به سمت درخت جذب شه
+    public float targetReachedThreshold = 3f;
+
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -92,7 +96,18 @@ public class AnimalWander : MonoBehaviour
     {
         currentState = AnimalState.Walking;
 
-        Vector3 randomDestination = GetRandomNavMeshPoint(transform.position, wanderRadius);
+        Vector3 basePoint = transform.position;
+
+        if (targetTree != null)
+        {
+            Vector3 toTarget = (targetTree.position - transform.position).normalized;
+            Vector3 randomOffset = Random.insideUnitSphere * wanderRadius * (1 - targetPriorityWeight);
+            Vector3 towardTarget = toTarget * wanderRadius * targetPriorityWeight;
+
+            basePoint = transform.position + randomOffset + towardTarget;
+        }
+
+        Vector3 randomDestination = GetRandomNavMeshPoint(basePoint, wanderRadius);
 
         float randomWalkTime = Random.Range(minWalkTime, maxWalkTime);
 
@@ -143,5 +158,10 @@ public class AnimalWander : MonoBehaviour
         }
 
         return origin;
+    }
+
+    public void SetTargetTree(Transform tree)
+    {
+        targetTree = tree;
     }
 }

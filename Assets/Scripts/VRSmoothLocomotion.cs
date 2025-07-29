@@ -14,8 +14,20 @@ public class VRSmoothLocomotion : MonoBehaviour
 
     void FixedUpdate()
     {
-        Vector2 input = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick); // آنالوگ سمت چپ
+        // Read input from left thumbstick
+        Vector2 input = Vector2.zero;
+        if (OVRInput.IsControllerConnected(OVRInput.Controller.LTouch))
+        {
+            input = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+        }
+        else
+        {
+            // If no VR controller connected, use keyboard input (WASD or Arrow Keys)
+            input.x = Input.GetAxis("Horizontal");
+            input.y = Input.GetAxis("Vertical");
+        }
 
+        // Calculate forward and right directions relative to camera
         Vector3 forward = cameraTransform.forward;
         Vector3 right = cameraTransform.right;
 
@@ -25,8 +37,10 @@ public class VRSmoothLocomotion : MonoBehaviour
         forward.Normalize();
         right.Normalize();
 
+        // Calculate movement direction
         Vector3 moveDirection = forward * input.y + right * input.x;
 
+        // Apply movement to rigidbody
         rb.MovePosition(rb.position + moveDirection * speed * Time.fixedDeltaTime);
     }
 }
