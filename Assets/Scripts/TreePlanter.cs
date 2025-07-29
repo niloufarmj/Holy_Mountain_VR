@@ -9,7 +9,7 @@ public class TreePlanter : MonoBehaviour
 
     private GameStats stats;
 
-    [HideInInspector] public int selectedPrototypeIndex = -1; // از UI ست می‌شه
+    [HideInInspector] public int selectedPrototypeIndex = 2; // از UI ست می‌شه
 
     void Start()
     {
@@ -22,7 +22,7 @@ public class TreePlanter : MonoBehaviour
 
     void Update()
     {
-        if (OVRInput.GetDown(OVRInput.Button.Two)) // دکمه B برای کاشت
+        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P)) // دکمه B برای کاشت
         {
             TryPlantSelectedTree();
         }

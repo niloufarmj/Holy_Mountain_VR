@@ -23522,6 +23522,30 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1920158762507531025, guid: 35348ac853f10584a9e52b978af197f9, type: 3}
   m_PrefabInstance: {fileID: 145754356}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &145808521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
+    scale: {x: 4.292864, y: 1, z: 4.292864}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Billow
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.7099999785423279,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.7400000095367432,"warpIterations":4.610000133514404,"warpStrength":0.3868248760700226,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1 &146083078
 GameObject:
   m_ObjectHideFlags: 0
@@ -151019,30 +151043,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1920158762507531025, guid: 35348ac853f10584a9e52b978af197f9, type: 3}
   m_PrefabInstance: {fileID: 802595724}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &802928949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
-    scale: {x: 4.292864, y: 1, z: 4.292864}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Billow
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.7099999785423279,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.7400000095367432,"warpIterations":4.610000133514404,"warpStrength":0.3868248760700226,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &803058031
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -280847,7 +280847,7 @@ MonoBehaviour:
       m_warpIterations: 4.61
       m_warpStrength: 0.38682488
       m_warpOffset: {x: 222.59402, y: -401.83527, z: 842.6193, w: 0}
-    m_noiseSettings: {fileID: 802928949}
+    m_noiseSettings: {fileID: 145808521}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -354394,23 +354394,15 @@ MonoBehaviour:
     - {fileID: 2217067525511754545, guid: ea83e32ce8094d24eab974c8c4ae96d9, type: 3}
     - {fileID: 4183672629187034092, guid: 0f63c4a470bc038418aed0ab9a16199f, type: 3}
     - {fileID: 320797259984582752, guid: f86f929ef8a19464eb126a7612c0f985, type: 3}
-    - {fileID: 3441131714533742938, guid: 05c61c21692b8554e8cc14e32371e020, type: 3}
-    - {fileID: 8953030405639012412, guid: a35b4994020e40b48ab1ff3e712f1bb2, type: 3}
-    - {fileID: 3045018643715619511, guid: 1da61a503aa53a4458c53e78f2b1ab64, type: 3}
     - {fileID: 2375668517674715068, guid: 59897b2dec9c3164fa19f1f89042619d, type: 3}
     - {fileID: 5546973519236100477, guid: cced9c61d5f43e2468022dcfbad25b57, type: 3}
     - {fileID: 4968428348473717561, guid: ae210b6ebe35d8f4883b61fe9f0c8622, type: 3}
     - {fileID: 3503333132634501949, guid: 2b90a2af956c5204a88ac675ca2641eb, type: 3}
     - {fileID: 773469920479179739, guid: 04be83f2782af3049ae20ef63ca3e809, type: 3}
-    - {fileID: 3079695440661327860, guid: 72d5c7eefc5b24642969e19cd0f758a6, type: 3}
-    - {fileID: 550375672422619498, guid: 5fd4e36bc775b48408f6ad47c53de86d, type: 3}
-    - {fileID: 5542278096399875581, guid: b66f27e3b3414e3458a7ee9726312b8e, type: 3}
     - {fileID: 4859721444834228700, guid: 9c2ac421b8fa4d640a07de65597a1b13, type: 3}
     - {fileID: 3894610491887363069, guid: 56e3268529be66440b14e663fc3ba9ad, type: 3}
     - {fileID: 1354514520162532258, guid: 1e4da81074bf03b439ffc036da136ac4, type: 3}
     - {fileID: 1279790902282000855, guid: 33884ade6c214c4488975b33c162b502, type: 3}
-    - {fileID: 5515534292888582148, guid: e4016633166b4b24288e592af4a5413f, type: 3}
-    - {fileID: 1419819575635623383, guid: 0e31332b34ca93648bef2fd4e4312970, type: 3}
     clusterCount: 50
     animalsPerCluster: 6
     clusterRadius: 20
@@ -354422,30 +354414,18 @@ MonoBehaviour:
     - {fileID: 4329630297204503023, guid: f7cabe06a0bdef64eb239a5e9b8941cc, type: 3}
     - {fileID: 2823159701476006309, guid: 2164ba7d61f76c34597baf83d5c5d145, type: 3}
     - {fileID: 6859280595766910188, guid: ced92d833eaef224b9fb9c10371efecc, type: 3}
-    - {fileID: 368835892274796979, guid: f701b08660515e146a7a5ee67dd8669f, type: 3}
-    - {fileID: 8052852544655095305, guid: 4b1bcc1274af7fb4887d450fb990322e, type: 3}
-    - {fileID: 8797989289648393222, guid: 7234793869fd5f74da29462afac0d32c, type: 3}
-    - {fileID: 7674646649185457169, guid: 05e9ed7f981b65a4aba701fb3fc06c16, type: 3}
     - {fileID: 8460148232798669928, guid: 47ff038dcc228f741b3a06a00f7137c3, type: 3}
     - {fileID: 5814515203554514693, guid: 117930814f3930742a2e84ed7759a318, type: 3}
     - {fileID: 595251198855115364, guid: 2d03bf314356838408658b34f2bc159c, type: 3}
     - {fileID: 4027337276099105261, guid: 468fa8645f9cc6b4a91b27b802025b4a, type: 3}
     - {fileID: 8743574355624642485, guid: 4943c733213a5d048a0fa5d0d378f934, type: 3}
     - {fileID: 9050422288757851383, guid: c53dd07a93432e74a82ee33b5681a708, type: 3}
-    - {fileID: 7315686355585020621, guid: 7cddfc98ba276a44d90779126560d502, type: 3}
-    - {fileID: 572815945125684775, guid: db54672f25bd5404b999c734ec0d2578, type: 3}
-    - {fileID: 6407629970003159292, guid: 6a4b12d896ad4a1458aa5e68f1fe3ec4, type: 3}
-    - {fileID: 8531656375029981632, guid: eb168092bafc7904d99f73117f6a0052, type: 3}
     - {fileID: 3693489319754660473, guid: 2874e4c8d9b32a64c9a3f39093822b92, type: 3}
     - {fileID: 1633904961328483303, guid: a071e457916482c419a1f23d401849a5, type: 3}
     - {fileID: 2438399516036298150, guid: 4533870488236544c8dbb5fdee58f1a9, type: 3}
     - {fileID: 4230944821858710543, guid: 7db6c3429d040b040b57a2eebc615066, type: 3}
     - {fileID: 3037578159000459461, guid: b5aadb5f365fc8f49a7e79e07909e77c, type: 3}
     - {fileID: 2895502832054376021, guid: 92f9bcb75dbf6da43ae263999bf69c45, type: 3}
-    - {fileID: 9011461397010156758, guid: d6c72e7b694c34a4b8ef5dc77c518e33, type: 3}
-    - {fileID: 7143974174649483413, guid: e064ae89777b83a41a5e34533ff555bc, type: 3}
-    - {fileID: 6158133573234346583, guid: b00eb5f40a2d8fb4ea96017c699abcf7, type: 3}
-    - {fileID: 7059519897584753400, guid: 62c972109a2ba8441b1f8c4a39ba6f7e, type: 3}
     clusterCount: 40
     animalsPerCluster: 6
     clusterRadius: 25
@@ -354458,11 +354438,6 @@ MonoBehaviour:
     - {fileID: 303211416398076540, guid: 4e1c6220d3f5b8a418ea624012bd44b6, type: 3}
     - {fileID: 6206992093468174426, guid: aa1a9fcd3f001e846b2d99d63d974073, type: 3}
     - {fileID: 4782132777744193358, guid: 7fe3809b26f3b354fbec706d4a7f17f2, type: 3}
-    - {fileID: 2907852797509534520, guid: b52dc8281a6a824489cdaa6f0e14555c, type: 3}
-    - {fileID: 8735983647343006283, guid: 476a2e14cda504347ad197ed885b8bc5, type: 3}
-    - {fileID: 4230741741823851656, guid: dab8c4acc80584c42a0f587df24ea765, type: 3}
-    - {fileID: 358606458074223964, guid: e98581d468e74544a9af8beb7235bf2c, type: 3}
-    - {fileID: 7720523125190301524, guid: e0905e92fc960d54386c14c9f6a48670, type: 3}
     - {fileID: 8501761226139808674, guid: cf378a9d3411a4c4e8d52fab0d8483f7, type: 3}
     - {fileID: 6175870570162878231, guid: 6315a227796aef94e841578ef0bfa34d, type: 3}
     - {fileID: 1585338493175291863, guid: d53d35fcfeee8ec42bc7d4df7f9486e0, type: 3}
@@ -354470,11 +354445,6 @@ MonoBehaviour:
     - {fileID: 1642079063577566673, guid: 409ea079ea4b0064ca74eb243fc02639, type: 3}
     - {fileID: 4086953623654277615, guid: 0ed2acd74f7467043af1f8b29844a326, type: 3}
     - {fileID: 7297489707340895755, guid: a57e0c388ec343646875f785e7d28b8a, type: 3}
-    - {fileID: 4171798587547893452, guid: bd92b10371aafe24181739a39fd6ae7b, type: 3}
-    - {fileID: 8222653819576781326, guid: 49c6e86df679e4645b5587ba3b7f8548, type: 3}
-    - {fileID: 4831224297209840732, guid: 33940009ad704c5499610c40b47a4d73, type: 3}
-    - {fileID: 3262959521062870428, guid: 8285ff40818cd764ca25257cd686f31f, type: 3}
-    - {fileID: 3040683189616400609, guid: b6e2498e7a953b746bb89efdbb1ab1d0, type: 3}
     - {fileID: 3379151725792271931, guid: ebc1760babfc51f4f88b2f0217364976, type: 3}
     - {fileID: 5026641582467399751, guid: 256aa897531ec944a98d3afe44f42ace, type: 3}
     - {fileID: 2404383989927178210, guid: 2b267f398832129479478dc5d8e62204, type: 3}
@@ -354482,11 +354452,6 @@ MonoBehaviour:
     - {fileID: 7157421354281649666, guid: ea0a3e41ea0f3b84f8e757fbd0a8bbdd, type: 3}
     - {fileID: 8120120014319050558, guid: 1349d38ac6d888c45a07b395affceb57, type: 3}
     - {fileID: 479958758755276476, guid: 2161c508c1fa5b84c9d9931357d3df6d, type: 3}
-    - {fileID: 7348602825884246086, guid: 86680480d9a968448bb95ab0048305a5, type: 3}
-    - {fileID: 3249511017510601445, guid: 6da1993b0c700be4d99d691accbafc48, type: 3}
-    - {fileID: 8322278030307338672, guid: 8605dd2ef4402fd4e945caf67419a3ae, type: 3}
-    - {fileID: 1647998514431486286, guid: 6f2cdc8685ff6474f853aa7dcbc37f50, type: 3}
-    - {fileID: 2254177564028627917, guid: ff55407876c8fdd44bd3a48296e8a3db, type: 3}
     clusterCount: 30
     animalsPerCluster: 6
     clusterRadius: 30

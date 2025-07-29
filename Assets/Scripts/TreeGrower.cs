@@ -13,6 +13,14 @@ public class TreeGrower : MonoBehaviour
 
     public event Action<TreeGrower> OnGrowthComplete;
 
+    public enum GrowthPhase { Seedling, Sapling, FullGrown }
+    public GrowthPhase currentPhase = GrowthPhase.Seedling;
+
+    private GrowthPhase lastPhase = GrowthPhase.Seedling;
+
+    [Header("Animal Attraction")]
+    public float attractRadius = 40f;
+
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -24,6 +32,8 @@ public class TreeGrower : MonoBehaviour
     public void StartGrowth()
     {
         isGrowing = true;
+
+        BroadcastToNearbyAnimals();
     }
 
     void Update()
@@ -34,6 +44,35 @@ public class TreeGrower : MonoBehaviour
         float t = Mathf.Clamp01(timer / growDuration);
         float currentScale = Mathf.Lerp(0f, 1f, t);
         transform.localScale = Vector3.one * currentScale;
+
+        GrowthPhase newPhase = currentPhase;
+        if (currentScale >= 1f)
+        {
+            currentPhase = GrowthPhase.FullGrown;
+            OnGrowthComplete?.Invoke(this);
+            isGrowing = false;
+        }
+        else if (currentScale >= 0.6f && currentPhase != GrowthPhase.Sapling)
+        {
+            currentPhase = GrowthPhase.Sapling;
+        }
+        else if (currentScale >= 0.2f && currentPhase != GrowthPhase.Seedling)
+        {
+            currentPhase = GrowthPhase.Seedling;
+        }
+
+        if (newPhase != currentPhase)
+        {
+            currentPhase = newPhase;
+
+            // فقط اگر فاز جذاب هست (Seedling یا Sapling)
+            if (currentPhase == GrowthPhase.Seedling || currentPhase == GrowthPhase.Sapling)
+            {
+                BroadcastToNearbyAnimals();
+            }
+
+            lastPhase = currentPhase;
+        }
 
         if (currentScale >= 0.35f && currentMats.Length == 1)
         {
@@ -57,6 +96,20 @@ public class TreeGrower : MonoBehaviour
         {
             OnGrowthComplete?.Invoke(this); // صدا زدن ایونت پایان رشد
             isGrowing = false; // فقط یک بار
+        }
+    }
+
+
+    void BroadcastToNearbyAnimals()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attractRadius);
+        foreach (var hit in hitColliders)
+        {
+            AnimalWander wanderer = hit.GetComponentInParent<AnimalWander>();
+            if (wanderer != null)
+            {
+                wanderer.SetTargetTree(transform);
+            }
         }
     }
 }
