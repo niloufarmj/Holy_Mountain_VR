@@ -9,7 +9,7 @@ public class TreePlanter : MonoBehaviour
 
     private GameStats stats;
 
-    [HideInInspector] public int selectedPrototypeIndex = 2; // از UI ست می‌شه
+    [HideInInspector] public int selectedPrototypeIndex = -1; // از UI ست می‌شه
 
     void Start()
     {

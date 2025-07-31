@@ -100,7 +100,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ca5cc6bb3a6212449dd7b6c411d6a22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  growDuration: 120
+  growDuration: 240
   barkMat: {fileID: 2100000, guid: 18057a17be3c5044ca95b113893a3aec, type: 2}
   endingMat: {fileID: 2100000, guid: 3eae9beb201a57d449c20d45949ed190, type: 2}
   needlesMat: {fileID: 2100000, guid: a87cc293b657faf4181138faafa386ae, type: 2}
+  currentPhase: 0
+  attractRadius: 40

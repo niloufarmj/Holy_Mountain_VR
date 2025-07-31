@@ -19,7 +19,7 @@ public class TreeGrower : MonoBehaviour
     private GrowthPhase lastPhase = GrowthPhase.Seedling;
 
     [Header("Animal Attraction")]
-    public float attractRadius = 40f;
+    public float attractRadius = 25f;
 
     void Start()
     {

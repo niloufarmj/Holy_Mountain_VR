@@ -38,11 +38,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _SkyboxA:
-        m_Texture: {fileID: 8900000, guid: 8742d234a0f593b49a0b5440c3fe89f9, type: 3}
+        m_Texture: {fileID: 8900000, guid: 60995c357a320a4488263256076c8893, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SkyboxB:
-        m_Texture: {fileID: 8900000, guid: 8742d234a0f593b49a0b5440c3fe89f9, type: 3}
+        m_Texture: {fileID: 8900000, guid: 60995c357a320a4488263256076c8893, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -62,7 +62,7 @@ Material:
     - _Blend: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Rotation: 54.732323
+    - _Rotation: 5.0371695
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
