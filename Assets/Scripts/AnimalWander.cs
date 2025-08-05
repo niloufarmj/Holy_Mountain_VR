@@ -8,7 +8,8 @@ public class AnimalWander : MonoBehaviour
     private enum AnimalState
     {
         Idling,
-        Walking
+        Walking,
+        Eating // NEW
     }
 
     [Header("Movement Settings")]
@@ -42,9 +43,9 @@ public class AnimalWander : MonoBehaviour
     private float walkAnimChangeTimer;
     private float currentAnimVariant = -1f;
 
-    private Transform targetTree = null;
+    public Transform targetTree = null;
     public float targetPriorityWeight = 0.7f; // بین ۰ تا ۱، چقدر به سمت درخت جذب شه
-    public float targetReachedThreshold = 3f;
+    public float targetReachedThreshold = 1f;
 
     void Start()
     {
@@ -60,6 +61,15 @@ public class AnimalWander : MonoBehaviour
         animator.SetFloat(speedParameter, currentSpeed > 0.05f ? 1f : 0f);
 
         stateTimer -= Time.deltaTime;
+
+        if (targetTree != null && Vector3.Distance(transform.position, targetTree.position) < targetReachedThreshold)
+        {
+            if (currentState != AnimalState.Eating)
+            {
+                StartEating();
+            }
+            return;
+        }
 
         if (currentState == AnimalState.Walking)
         {
@@ -79,6 +89,38 @@ public class AnimalWander : MonoBehaviour
             else
                 StartIdling();
         }
+    }
+
+    private void StartEating()
+    {
+        currentState = AnimalState.Eating;
+        agent.ResetPath();
+        animator.SetFloat(speedParameter, 0f);
+
+        if (targetTree != null)
+        {
+            TreeGrower grower = targetTree.GetComponent<TreeGrower>();
+            if (grower != null)
+                grower.StartEating(this);
+        }
+
+        // حالت انیمیشن یا پارامتر خاص برای خوردن، در صورت وجود
+        animator.SetBool("IsEating", true); // فرض بر اینه که همچین تریگری وجود داره
+    }
+
+    private void StopEating()
+    {
+        animator.SetBool("IsEating", false);
+
+        if (targetTree != null)
+        {
+            TreeGrower grower = targetTree.GetComponent<TreeGrower>();
+            if (grower != null)
+                grower.StopEating(this);
+        }
+
+        targetTree = null; // دیگه هدفی نداره
+        StartIdling();     // دوباره وارد حالت عادی بشه
     }
 
 
@@ -163,5 +205,10 @@ public class AnimalWander : MonoBehaviour
     public void SetTargetTree(Transform tree)
     {
         targetTree = tree;
+    }
+
+    public void ForceStopEating()
+    {
+        StopEating(); // همون تابع خودت که متوقف می‌کنه همه‌چیزو
     }
 }

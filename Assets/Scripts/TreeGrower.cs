@@ -18,8 +18,27 @@ public class TreeGrower : MonoBehaviour
 
     private GrowthPhase lastPhase = GrowthPhase.Seedling;
 
+
+    private int eatingAnimalCount = 0;
+    public float damageFactor = 0.5f; // شدت تأثیر حیوونا روی رشد (بین ۰ تا ۱)
+
     [Header("Animal Attraction")]
     public float attractRadius = 25f;
+
+
+    private float currentGrowthRate;
+    private float initialGrowDuration;
+
+    private int activeEaters = 0;
+    private float eatDamageInterval = 2f;
+    private float damageTimer = 0f;
+
+    private bool isShrinking = false;
+
+    private float growTimer = 0f;
+    private float shrinkTimer = 0f;
+
+    private readonly System.Collections.Generic.List<AnimalWander> currentEaters = new();
 
     void Start()
     {
@@ -32,6 +51,8 @@ public class TreeGrower : MonoBehaviour
     public void StartGrowth()
     {
         isGrowing = true;
+        initialGrowDuration = growDuration;
+        currentGrowthRate = 1f; // 1 یعنی با سرعت کامل
 
         BroadcastToNearbyAnimals();
     }
@@ -40,8 +61,56 @@ public class TreeGrower : MonoBehaviour
     {
         if (!isGrowing) return;
 
-        timer += Time.deltaTime;
-        float t = Mathf.Clamp01(timer / growDuration);
+        timer += Time.deltaTime * currentGrowthRate;
+
+        // هر eatDamageInterval ثانیه یک بار آسیب بزن
+        if (activeEaters > 0)
+        {
+            damageTimer += Time.deltaTime;
+
+            if (damageTimer >= eatDamageInterval)
+            {
+                damageTimer = 0f;
+
+                // کاهش سرعت رشد به نسبت تعداد حیوانات
+                currentGrowthRate = Mathf.Max(0f, currentGrowthRate - 0.2f * activeEaters);
+
+                // اگر رسید به صفر، شروع به کوچک شدن
+                if (currentGrowthRate <= 0f && !isShrinking)
+                {
+                    isShrinking = true;
+                    shrinkTimer = (1f - Mathf.Clamp01(growTimer / growDuration)) * growDuration;
+                }
+            }
+        }
+        else
+        {
+            damageTimer = 0f;
+
+            if (isShrinking)
+            {
+                // اگر shrink فعال بود و دیگه دشمنی نبود، دوباره برگرده به رشد
+                isShrinking = false;
+                growTimer = (1f - Mathf.Clamp01(shrinkTimer / growDuration)) * growDuration;
+            }
+
+            // اگر هیچ حیوانی نیست و رشد کم شده بود، دوباره برگرده به سرعت اولیه
+            currentGrowthRate = Mathf.MoveTowards(currentGrowthRate, 1f, Time.deltaTime * 0.5f);
+        }
+
+        float t;
+
+        if (isShrinking)
+        {
+            shrinkTimer += Time.deltaTime * (1f + activeEaters * 0.3f); // سرعت تخریب متناسب با تعداد حیوونا
+            t = 1f - Mathf.Clamp01(shrinkTimer / growDuration);
+        }
+        else
+        {
+            growTimer += Time.deltaTime * currentGrowthRate;
+            t = Mathf.Clamp01(growTimer / growDuration);
+        }
+
         float currentScale = Mathf.Lerp(0f, 1f, t);
         transform.localScale = Vector3.one * currentScale;
 
@@ -97,6 +166,16 @@ public class TreeGrower : MonoBehaviour
             OnGrowthComplete?.Invoke(this); // صدا زدن ایونت پایان رشد
             isGrowing = false; // فقط یک بار
         }
+
+        if (isShrinking && transform.localScale.x <= 0.01f)
+        {
+            foreach (var animal in currentEaters)
+            {
+                if (animal != null)
+                    animal.ForceStopEating();
+            }
+            Destroy(gameObject);
+        }
     }
 
 
@@ -111,5 +190,19 @@ public class TreeGrower : MonoBehaviour
                 wanderer.SetTargetTree(transform);
             }
         }
+    }
+
+    public void StartEating(AnimalWander animal)
+    {
+        if (!currentEaters.Contains(animal))
+            currentEaters.Add(animal);
+
+        activeEaters++;
+    }
+
+    public void StopEating(AnimalWander animal)
+    {
+        currentEaters.Remove(animal);
+        activeEaters = Mathf.Max(0, activeEaters - 1);
     }
 }
