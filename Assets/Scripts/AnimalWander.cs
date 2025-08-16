@@ -1,53 +1,73 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Simple wandering/foraging brain for an animal using a NavMeshAgent and Animator.
+/// Cycles between Idling, Walking, and Eating states with randomized timers,
+/// optional attraction toward a target tree, and animation variant switching.
+/// </summary>
 [RequireComponent(typeof(NavMeshAgent), typeof(Animator))]
 public class AnimalWander : MonoBehaviour
 {
-    // Enum to manage the animal's current state
+    /// <summary>
+    /// High-level locomotion/behavior states for the animal.
+    /// </summary>
     private enum AnimalState
     {
         Idling,
         Walking,
-        Eating // NEW
+        Eating
     }
 
     [Header("Movement Settings")]
     [Tooltip("The radius within which the animal will wander.")]
     public float wanderRadius = 15f;
+
     [Tooltip("Minimum time the animal will stay idle.")]
     public float minIdleTime = 3f;
+
     [Tooltip("Maximum time the animal will stay idle.")]
     public float maxIdleTime = 6f;
 
     [Header("Animation Settings")]
     [Tooltip("The name of the float parameter in the Animator that controls speed.")]
     public string speedParameter = "Speed";
+
     [Tooltip("The name of the float parameter in the Animator that selects animation variant.")]
     public string animVariantParameter = "AnimVariant";
 
     [Tooltip("Minimum time the animal will walk.")]
     public float minWalkTime = 6f;
+
     [Tooltip("Maximum time the animal will walk.")]
     public float maxWalkTime = 12f;
 
     [Tooltip("Minimum time before changing walk animation variant again.")]
     public float walkAnimChangeInterval = 5f;
 
+    // Required components
     private NavMeshAgent agent;
     private Animator animator;
+
+    // State machine bookkeeping
     private AnimalState currentState;
     private float stateTimer;
 
+    // Animation variant bookkeeping
     private const int totalVariants = 6; // Number of idle/walk animation variants
     private float walkAnimChangeTimer;
     private float currentAnimVariant = -1f;
 
+    // Optional attraction toward a target tree while wandering
     public Transform targetTree = null;
-    public float targetPriorityWeight = 0.7f; // بین ۰ تا ۱، چقدر به سمت درخت جذب شه
+
+    [Tooltip("Weight (0..1) toward the target tree when picking a walk destination.")]
+    public float targetPriorityWeight = 0.7f;
+
+    [Tooltip("Distance within which the animal considers the tree reached for eating.")]
     public float targetReachedThreshold = 1f;
 
-    void Start()
+    private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
@@ -55,13 +75,15 @@ public class AnimalWander : MonoBehaviour
         StartIdling();
     }
 
-    void Update()
+    private void Update()
     {
+        // Drive a binary Speed parameter for blend trees that expect 0/1
         float currentSpeed = agent.velocity.magnitude;
         animator.SetFloat(speedParameter, currentSpeed > 0.05f ? 1f : 0f);
 
         stateTimer -= Time.deltaTime;
 
+        // Switch to Eating when close enough to the target tree
         if (targetTree != null && Vector3.Distance(transform.position, targetTree.position) < targetReachedThreshold)
         {
             if (currentState != AnimalState.Eating)
@@ -71,6 +93,7 @@ public class AnimalWander : MonoBehaviour
             return;
         }
 
+        // While walking, periodically change the walk animation variant
         if (currentState == AnimalState.Walking)
         {
             walkAnimChangeTimer -= Time.deltaTime;
@@ -82,6 +105,7 @@ public class AnimalWander : MonoBehaviour
             }
         }
 
+        // Flip between idle and walk when the state's timer elapses
         if (stateTimer <= 0f)
         {
             if (currentState == AnimalState.Idling)
@@ -91,6 +115,9 @@ public class AnimalWander : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Enter the Eating state: stop moving, notify the tree (if it supports it), and set eating animation flag.
+    /// </summary>
     private void StartEating()
     {
         currentState = AnimalState.Eating;
@@ -104,10 +131,13 @@ public class AnimalWander : MonoBehaviour
                 grower.StartEating(this);
         }
 
-        // حالت انیمیشن یا پارامتر خاص برای خوردن، در صورت وجود
-        animator.SetBool("IsEating", true); // فرض بر اینه که همچین تریگری وجود داره
+        // Assumes the Animator has a boolean parameter named "IsEating"
+        animator.SetBool("IsEating", true);
     }
 
+    /// <summary>
+    /// Exit the Eating state: clear animation flag, notify the tree, clear target, and return to idle.
+    /// </summary>
     private void StopEating()
     {
         animator.SetBool("IsEating", false);
@@ -119,11 +149,13 @@ public class AnimalWander : MonoBehaviour
                 grower.StopEating(this);
         }
 
-        targetTree = null; // دیگه هدفی نداره
-        StartIdling();     // دوباره وارد حالت عادی بشه
+        targetTree = null;
+        StartIdling();
     }
 
-
+    /// <summary>
+    /// Enter the Idling state and pick a new idle duration. Stops movement and randomizes idle animation variant.
+    /// </summary>
     private void StartIdling()
     {
         currentState = AnimalState.Idling;
@@ -134,6 +166,11 @@ public class AnimalWander : MonoBehaviour
         SetAnimVariant();
     }
 
+    /// <summary>
+    /// Enter the Walking state, choose a destination (optionally biased toward target tree),
+    /// compute a reasonable state duration based on distance and a random window,
+    /// and select a walk animation variant.
+    /// </summary>
     private void StartWalking()
     {
         currentState = AnimalState.Walking;
@@ -168,9 +205,9 @@ public class AnimalWander : MonoBehaviour
         walkAnimChangeTimer = walkAnimChangeInterval;
     }
 
-
     /// <summary>
-    /// Randomly sets the animation variant between 0 and 1 (in steps based on variant count).
+    /// Randomly sets the animation variant (0..1 normalized across totalVariants).
+    /// Optionally enforces that the new value differs from the current one.
     /// </summary>
     private void SetAnimVariant(bool differentFromCurrent = false)
     {
@@ -187,7 +224,8 @@ public class AnimalWander : MonoBehaviour
     }
 
     /// <summary>
-    /// Finds a random point on the NavMesh within a given radius.
+    /// Finds a random valid position on the NavMesh within a given radius of an origin.
+    /// Returns the origin if sampling fails.
     /// </summary>
     public static Vector3 GetRandomNavMeshPoint(Vector3 origin, float radius)
     {
@@ -202,13 +240,19 @@ public class AnimalWander : MonoBehaviour
         return origin;
     }
 
+    /// <summary>
+    /// Assign or clear the current target tree transform that influences walking and triggers eating.
+    /// </summary>
     public void SetTargetTree(Transform tree)
     {
         targetTree = tree;
     }
 
+    /// <summary>
+    /// Public wrapper to forcibly stop the current eating behavior (e.g., if the tree is destroyed).
+    /// </summary>
     public void ForceStopEating()
     {
-        StopEating(); // همون تابع خودت که متوقف می‌کنه همه‌چیزو
+        StopEating();
     }
 }

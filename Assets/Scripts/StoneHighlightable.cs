@@ -1,36 +1,50 @@
 using UnityEngine;
 
+/// <summary>
+/// Makes a stone object highlightable by scaling a shader property.
+/// - Detects shader property dynamically (supports display name and fallback reference).
+/// - Applies a pulsing highlight effect when active.
+/// - Disables highlight when the stone is being held by the player.
+/// - Uses <see cref="MaterialPropertyBlock"/> to avoid creating new material instances.
+/// </summary>
 [DisallowMultipleComponent]
 public class StoneHighlightable : MonoBehaviour
 {
     [Header("Shader Property (Display vs Reference)")]
-    [Tooltip("Display name in the material, often 'Scale'")]
-    public string propertyName = "Scale";     // مثلا نمایش در متریال
-    [Tooltip("Fallback if your ShaderGraph Reference is '_Scale'")]
+    [Tooltip("Display name in the material (commonly 'Scale').")]
+    public string propertyName = "Scale";
+
+    [Tooltip("Fallback property name if the shader reference is '_Scale'.")]
     public string fallbackPropertyName = "_Scale";
 
-    [Header("Pulse")]
-    public float baseScale = 1f;              // خاموش
-    public float highlightMax = 1.2f;         // روشن
+    [Header("Pulse Settings")]
+    [Tooltip("Scale when not highlighted (off).")]
+    public float baseScale = 1f;
+
+    [Tooltip("Maximum scale when fully highlighted (on).")]
+    public float highlightMax = 1.2f;
+
+    [Tooltip("Speed of pulsing effect while highlighted.")]
     public float pulseSpeed = 3f;
 
-    Renderer[] renderers;
-    int propID = -1;
-    bool isHighlighted;
-    float tOffset;
-    MaterialPropertyBlock block;
-    ThrowableStone throwable;
+    // Cached references
+    private Renderer[] renderers;
+    private int propID = -1;
+    private bool isHighlighted;
+    private float tOffset;
+    private MaterialPropertyBlock block;
+    private ThrowableStone throwable;
 
-    void Awake()
+    private void Awake()
     {
-        // همیشه خودم پیدا می‌کنم تا اشتباه دستی پیش نیاد
+        // Collect all renderers in children (ensures nested meshes are included)
         renderers = GetComponentsInChildren<Renderer>(true);
 
         block = new MaterialPropertyBlock();
-        tOffset = Random.value * 100f;
+        tOffset = Random.value * 100f; // Random phase offset for pulsing effect
         throwable = GetComponent<ThrowableStone>();
 
-        // انتخاب هوشمند اسم پراپرتی
+        // Resolve shader property: try display name first, fallback otherwise
         int id1 = Shader.PropertyToID(propertyName);
         int id2 = Shader.PropertyToID(fallbackPropertyName);
 
@@ -40,31 +54,46 @@ public class StoneHighlightable : MonoBehaviour
         {
             Debug.LogWarning(
                 $"[StoneHighlightable] Neither '{propertyName}' nor '{fallbackPropertyName}' found on materials of {name}. " +
-                "Open your Shader Graph and copy the exact 'Reference' name into this script.");
-            // یک شناسه پیش‌فرض می‌ذاریم که کرش نکنه
+                "Open your Shader Graph and copy the exact 'Reference' name into this script."
+            );
+            // Assign default to avoid crashes
             propID = id1;
         }
 
+        // Initialize to base scale
         Apply(baseScale);
     }
 
-    void Update()
+    private void Update()
     {
-        // وقتی تو دست بازیکنه، هایلایت خاموش
+        // If being held, ensure highlight is off
         if (throwable != null && throwable.IsHeld)
         {
-            if (isHighlighted) { isHighlighted = false; Apply(baseScale); }
+            if (isHighlighted)
+            {
+                isHighlighted = false;
+                Apply(baseScale);
+            }
             return;
         }
 
-        if (!isHighlighted) { Apply(baseScale); return; }
+        // If not highlighted, apply base scale only
+        if (!isHighlighted)
+        {
+            Apply(baseScale);
+            return;
+        }
 
+        // Pulsing effect while highlighted
         float s = 0.5f + 0.5f * Mathf.Sin((Time.time + tOffset) * pulseSpeed);
         float value = Mathf.Lerp(baseScale, highlightMax, s);
         Apply(value);
     }
 
-    void Apply(float value)
+    /// <summary>
+    /// Applies a float value to the shader property for all renderers in this object.
+    /// </summary>
+    private void Apply(float value)
     {
         if (renderers == null) return;
 
@@ -73,13 +102,16 @@ public class StoneHighlightable : MonoBehaviour
             var r = renderers[i];
             if (!r) continue;
 
-            if (block == null) block = new MaterialPropertyBlock(); // احتیاط
+            if (block == null) block = new MaterialPropertyBlock(); // Safety fallback
             r.GetPropertyBlock(block);
             block.SetFloat(propID, value);
             r.SetPropertyBlock(block);
         }
     }
 
+    /// <summary>
+    /// Enables or disables highlighting.
+    /// </summary>
     public void SetHighlighted(bool on)
     {
         if (isHighlighted == on) return;
@@ -87,7 +119,10 @@ public class StoneHighlightable : MonoBehaviour
         if (!on) Apply(baseScale);
     }
 
-    bool AnyRendererHasProperty(int id)
+    /// <summary>
+    /// Utility to check if any renderer in this object supports the given property.
+    /// </summary>
+    private bool AnyRendererHasProperty(int id)
     {
         foreach (var r in renderers)
         {

@@ -1,66 +1,97 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 
-public class ProximityStoneHighlighter : MonoBehaviour
+/// <summary>
+/// Central HUD/game-state counter for seeds, stones, and trees.
+/// - Maintains a per-prototype seed inventory (counts per tree type).
+/// - Updates TextMeshPro UI labels for stones and trees when they change.
+/// Note: Seed counts are tracked in <see cref="seedInventory"/> but are not
+/// directly printed to UI here; that can be added by the caller if desired.
+/// </summary>
+public class GameStats : MonoBehaviour
 {
-    public float radius = 8f;
-    public LayerMask stoneLayer;           // set in Inspector to 'Stone'
-    public float scanInterval = 0.25f;
-    public bool debugLogs = true;
+    [Header("UI References (TextMeshProUGUI)")]
+    [Tooltip("Optional: Label for displaying total seeds (not auto-updated in this class).")]
+    public TextMeshProUGUI seedsText;
 
-    HashSet<StoneHighlightable> active = new HashSet<StoneHighlightable>();
-    Collider[] hits = new Collider[512];
-    float timer;
+    [Tooltip("Label that displays 'Stones Collected: X'.")]
+    public TextMeshProUGUI stonesText;
 
-    void Start()
+    [Tooltip("Label that displays 'Trees Planted: X'.")]
+    public TextMeshProUGUI treesText;
+
+    [Header("Seed Inventory")]
+    [Tooltip("Per-prototype seed counts (e.g., different tree types).")]
+    public List<SeedInventoryEntry> seedInventory = new List<SeedInventoryEntry>();
+
+    // Internal tallies for stones/trees (displayed when changed).
+    private int seedCount = 0, stoneCount = 0, treeCount = 0; // seedCount unused by current API; kept for compatibility
+
+    /// <summary>
+    /// Adds one seed of the given prototype type into the inventory.
+    /// If the type doesn't exist yet, a new entry is created.
+    /// </summary>
+    /// <param name="prototypeIndex">Tree prototype index (type identifier).</param>
+    public void AddSeed(int prototypeIndex)
     {
-        // Auto-fix: if not set in Inspector, try "Stone" layer by name
-        if (stoneLayer.value == 0)
-        {
-            int idx = LayerMask.NameToLayer("Stone");
-            if (idx >= 0) stoneLayer = 1 << idx;
-            if (debugLogs) Debug.Log($"[PSH] stoneLayer was 0; set to 'Stone' -> {stoneLayer.value}");
-        }
+        var entry = seedInventory.Find(e => e.prototypeIndex == prototypeIndex);
+        if (entry != null)
+            entry.count++;
+        else
+            seedInventory.Add(new SeedInventoryEntry { prototypeIndex = prototypeIndex, count = 1 });
     }
 
-    void Update()
+    /// <summary>
+    /// Checks if there is at least one seed available for the given prototype index.
+    /// </summary>
+    /// <param name="prototypeIndex">Tree prototype index to query.</param>
+    /// <returns>True if inventory contains one or more; otherwise false.</returns>
+    public bool HasSeed(int prototypeIndex) => seedInventory.Exists(e => e.prototypeIndex == prototypeIndex && e.count > 0);
+
+    /// <summary>
+    /// Consumes one seed of the specified prototype type, if available.
+    /// Does nothing if the type is missing or the count is zero.
+    /// </summary>
+    /// <param name="prototypeIndex">Tree prototype index to consume.</param>
+    public void UseSeed(int prototypeIndex)
     {
-        timer -= Time.deltaTime;
-        if (timer > 0f) return;
-        timer = scanInterval;
-
-        int n = Physics.OverlapSphereNonAlloc(
-            transform.position, radius, hits, stoneLayer, QueryTriggerInteraction.Ignore);
-
-        if (debugLogs) Debug.Log($"[PSH] hits: {n} within r={radius}");
-
-        // mark seen
-        HashSet<StoneHighlightable> seen = new HashSet<StoneHighlightable>();
-        for (int i = 0; i < n; i++)
-        {
-            var h = hits[i];
-            if (!h) continue;
-
-            // robust: search up the hierarchy
-            var s = h.GetComponent<StoneHighlightable>();
-            if (!s) continue;
-
-            seen.Add(s);
-            if (!active.Contains(s))
-                s.SetHighlighted(true);
-        }
-
-        // turn off gone ones
-        foreach (var s in active)
-            if (!seen.Contains(s))
-                s.SetHighlighted(false);
-
-        active = seen;
+        var entry = seedInventory.Find(e => e.prototypeIndex == prototypeIndex);
+        if (entry != null && entry.count > 0)
+            entry.count--;
     }
 
-    void OnDrawGizmosSelected()
+    /// <summary>
+    /// Increments collected stones by one and updates the stones UI label.
+    /// </summary>
+    public void AddStone()
     {
-        Gizmos.color = new Color(0,1,1,0.25f);
-        Gizmos.DrawWireSphere(transform.position, radius);
+        stoneCount++;
+        if (stonesText != null)
+            stonesText.text = $"Stones Collected: {stoneCount}";
     }
+
+    /// <summary>
+    /// Increments planted trees by one and updates the trees UI label.
+    /// </summary>
+    public void AddTree()
+    {
+        treeCount++;
+        if (treesText != null)
+            treesText.text = $"Trees Planted: {treeCount}";
+    }
+}
+
+/// <summary>
+/// Inventory entry for seeds of a specific tree prototype.
+/// </summary>
+[System.Serializable]
+public class SeedInventoryEntry
+{
+    [Tooltip("Tree prototype index (type identifier).")]
+    public int prototypeIndex;
+
+    [Tooltip("How many seeds of this prototype are currently held.")]
+    public int count;
 }

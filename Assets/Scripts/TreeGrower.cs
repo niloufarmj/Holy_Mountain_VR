@@ -1,46 +1,61 @@
 using UnityEngine;
 using System;
 
+/// <summary>
+/// Handles growth and destruction of a planted tree:
+/// - Grows through multiple phases (Seedling, Sapling, FullGrown).
+/// - Materials and visuals update as growth progresses.
+/// - Nearby animals can be attracted to eat the tree, slowing/stopping growth.
+/// - If animals overwhelm growth, the tree shrinks and may be destroyed.
+/// - Supports broadcasting to animals, damage over time, and event on full growth.
+/// </summary>
 public class TreeGrower : MonoBehaviour
 {
+    [Header("Growth Settings")]
+    [Tooltip("Time (seconds) for the tree to fully grow under normal conditions.")]
     public float growDuration = 10f;
-    public Material barkMat, endingMat, needlesMat;
 
+    [Header("Materials")]
+    public Material barkMat;
+    public Material endingMat;
+    public Material needlesMat;
+
+    // Growth state
     private bool isGrowing = false;
     private float timer = 0f;
     private Renderer rend;
     private Material[] currentMats;
 
+    /// <summary>Event invoked when the tree finishes full growth.</summary>
     public event Action<TreeGrower> OnGrowthComplete;
 
+    /// <summary>Growth phases representing stages of scale.</summary>
     public enum GrowthPhase { Seedling, Sapling, FullGrown }
     public GrowthPhase currentPhase = GrowthPhase.Seedling;
-
     private GrowthPhase lastPhase = GrowthPhase.Seedling;
 
+    [Header("Animal Interaction")]
+    [Tooltip("Growth reduction factor applied by animals eating (0–1 scale).")]
+    public float damageFactor = 0.5f;
 
-    private int eatingAnimalCount = 0;
-    public float damageFactor = 0.5f; // شدت تأثیر حیوونا روی رشد (بین ۰ تا ۱)
-
-    [Header("Animal Attraction")]
+    [Tooltip("Radius within which animals will be attracted during growth.")]
     public float attractRadius = 25f;
 
+    private int activeEaters = 0;
+    private readonly System.Collections.Generic.List<AnimalWander> currentEaters = new();
 
+    // Growth timers
     private float currentGrowthRate;
     private float initialGrowDuration;
-
-    private int activeEaters = 0;
     private float eatDamageInterval = 2f;
     private float damageTimer = 0f;
 
+    // Shrinking state
     private bool isShrinking = false;
-
     private float growTimer = 0f;
     private float shrinkTimer = 0f;
 
-    private readonly System.Collections.Generic.List<AnimalWander> currentEaters = new();
-
-    void Start()
+    private void Start()
     {
         rend = GetComponent<Renderer>();
         currentMats = new Material[1] { barkMat };
@@ -48,34 +63,33 @@ public class TreeGrower : MonoBehaviour
         transform.localScale = Vector3.zero;
     }
 
+    /// <summary>
+    /// Begins growth process from seed state and attracts nearby animals.
+    /// </summary>
     public void StartGrowth()
     {
         isGrowing = true;
         initialGrowDuration = growDuration;
-        currentGrowthRate = 1f; // 1 یعنی با سرعت کامل
-
+        currentGrowthRate = 1f;
         BroadcastToNearbyAnimals();
     }
 
-    void Update()
+    private void Update()
     {
         if (!isGrowing) return;
 
         timer += Time.deltaTime * currentGrowthRate;
 
-        // هر eatDamageInterval ثانیه یک بار آسیب بزن
+        // Apply periodic growth damage from active animals
         if (activeEaters > 0)
         {
             damageTimer += Time.deltaTime;
-
             if (damageTimer >= eatDamageInterval)
             {
                 damageTimer = 0f;
-
-                // کاهش سرعت رشد به نسبت تعداد حیوانات
                 currentGrowthRate = Mathf.Max(0f, currentGrowthRate - 0.2f * activeEaters);
 
-                // اگر رسید به صفر، شروع به کوچک شدن
+                // If growth halts, begin shrinking
                 if (currentGrowthRate <= 0f && !isShrinking)
                 {
                     isShrinking = true;
@@ -89,20 +103,20 @@ public class TreeGrower : MonoBehaviour
 
             if (isShrinking)
             {
-                // اگر shrink فعال بود و دیگه دشمنی نبود، دوباره برگرده به رشد
+                // If shrinking but no longer attacked, revert to growth
                 isShrinking = false;
                 growTimer = (1f - Mathf.Clamp01(shrinkTimer / growDuration)) * growDuration;
             }
 
-            // اگر هیچ حیوانی نیست و رشد کم شده بود، دوباره برگرده به سرعت اولیه
+            // Recover growth rate gradually if reduced
             currentGrowthRate = Mathf.MoveTowards(currentGrowthRate, 1f, Time.deltaTime * 0.5f);
         }
 
+        // Calculate normalized growth/shrink factor
         float t;
-
         if (isShrinking)
         {
-            shrinkTimer += Time.deltaTime * (1f + activeEaters * 0.3f); // سرعت تخریب متناسب با تعداد حیوونا
+            shrinkTimer += Time.deltaTime * (1f + activeEaters * 0.3f);
             t = 1f - Mathf.Clamp01(shrinkTimer / growDuration);
         }
         else
@@ -111,9 +125,11 @@ public class TreeGrower : MonoBehaviour
             t = Mathf.Clamp01(growTimer / growDuration);
         }
 
+        // Scale tree accordingly
         float currentScale = Mathf.Lerp(0f, 1f, t);
         transform.localScale = Vector3.one * currentScale;
 
+        // Determine growth phase
         GrowthPhase newPhase = currentPhase;
         if (currentScale >= 1f)
         {
@@ -130,19 +146,18 @@ public class TreeGrower : MonoBehaviour
             currentPhase = GrowthPhase.Seedling;
         }
 
+        // Handle phase transitions
         if (newPhase != currentPhase)
         {
             currentPhase = newPhase;
-
-            // فقط اگر فاز جذاب هست (Seedling یا Sapling)
             if (currentPhase == GrowthPhase.Seedling || currentPhase == GrowthPhase.Sapling)
             {
                 BroadcastToNearbyAnimals();
             }
-
             lastPhase = currentPhase;
         }
 
+        // Progressively add materials as tree grows
         if (currentScale >= 0.35f && currentMats.Length == 1)
         {
             currentMats = new Material[2] { barkMat, endingMat };
@@ -161,12 +176,14 @@ public class TreeGrower : MonoBehaviour
             currentMats[2].SetFloat("_Cutoff", alphaValue);
         }
 
+        // Finalize growth
         if (currentScale >= 1f)
         {
-            OnGrowthComplete?.Invoke(this); // صدا زدن ایونت پایان رشد
-            isGrowing = false; // فقط یک بار
+            OnGrowthComplete?.Invoke(this);
+            isGrowing = false;
         }
 
+        // Destroy if fully shrunk
         if (isShrinking && transform.localScale.x <= 0.01f)
         {
             foreach (var animal in currentEaters)
@@ -178,8 +195,10 @@ public class TreeGrower : MonoBehaviour
         }
     }
 
-
-    void BroadcastToNearbyAnimals()
+    /// <summary>
+    /// Notifies nearby animals within <see cref="attractRadius"/> to target this tree.
+    /// </summary>
+    private void BroadcastToNearbyAnimals()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, attractRadius);
         foreach (var hit in hitColliders)
@@ -192,6 +211,9 @@ public class TreeGrower : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when an animal starts eating this tree.
+    /// </summary>
     public void StartEating(AnimalWander animal)
     {
         if (!currentEaters.Contains(animal))
@@ -200,6 +222,9 @@ public class TreeGrower : MonoBehaviour
         activeEaters++;
     }
 
+    /// <summary>
+    /// Called when an animal stops eating this tree.
+    /// </summary>
     public void StopEating(AnimalWander animal)
     {
         currentEaters.Remove(animal);

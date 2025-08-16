@@ -1,14 +1,22 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Represents a seed item that the player can collect.
+/// - Detects when the player enters/exits its trigger zone.
+/// - Listens for a collect input (VR controller "A" button or keyboard "E").
+/// - Adds a seed to <see cref="GameStats"/> when collected.
+/// - Destroys its parent GameObject after collection.
+/// </summary>
 public class SeedCollectible : MonoBehaviour
 {
+    // Tracks if the player is currently inside the trigger area
     private bool playerInRange = false;
 
-    [Tooltip("نوع درختی که این بذر متعلق به آن است.")]
+    [Tooltip("Tree prototype index this seed belongs to.")]
     public int prototypeIndex;
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         Debug.Log($"[SeedCollectible] OnTriggerEnter: {other.name}");
 
@@ -19,7 +27,7 @@ public class SeedCollectible : MonoBehaviour
         }
     }
 
-    void OnTriggerExit(Collider other)
+    private void OnTriggerExit(Collider other)
     {
         Debug.Log($"[SeedCollectible] OnTriggerExit: {other.name}");
 
@@ -30,22 +38,22 @@ public class SeedCollectible : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (playerInRange)
         {
             Debug.Log("[SeedCollectible] Player in range. Waiting for input...");
 
-            // Check VR input or keyboard fallback
             bool isCollectPressed = false;
 
+            // Check VR input first, fallback to keyboard
             if (OVRInput.IsControllerConnected(OVRInput.Controller.RTouch))
             {
-                isCollectPressed = OVRInput.GetDown(OVRInput.Button.One); // A button on Oculus
+                isCollectPressed = OVRInput.GetDown(OVRInput.Button.One); // "A" button on Oculus Touch
             }
             else
             {
-                isCollectPressed = Input.GetKeyDown(KeyCode.E); // fallback to E key on keyboard
+                isCollectPressed = Input.GetKeyDown(KeyCode.E); // fallback key
             }
 
             if (isCollectPressed)
@@ -56,7 +64,12 @@ public class SeedCollectible : MonoBehaviour
         }
     }
 
-    void Collect()
+    /// <summary>
+    /// Handles collection of this seed:
+    /// - Increases seed count in <see cref="GameStats"/>.
+    /// - Destroys the seed's parent object from the scene.
+    /// </summary>
+    private void Collect()
     {
         Debug.Log("[SeedCollectible] Collect() called!");
 
@@ -71,6 +84,7 @@ public class SeedCollectible : MonoBehaviour
             Debug.LogWarning("[SeedCollectible] GameStats not found!");
         }
 
+        // Destroy parent (assumes seed model is a child object)
         Destroy(transform.parent.gameObject);
     }
 }

@@ -2,47 +2,67 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+/// <summary>
+/// Manages periodic tree deaths near the VR player:
+/// - Clones terrain data at runtime to avoid modifying the editor terrain.
+/// - At intervals, finds a random nearby tree and replaces it with an animated prefab.
+/// - Plays a corruption aura, falling animation, and dissolve effect before destroying.
+/// - Optionally spawns a seed collectible at the fallen tree’s location.
+/// </summary>
 public class TreeDeathManager : MonoBehaviour
 {
+    [Header("References")]
+    [Tooltip("Terrain that contains trees to manage.")]
     public Terrain terrain;
-    public float interval = 10f;
 
-    private List<TreeInstance> treeList;
-    [HideInInspector] public TerrainData clonedData;
-
+    [Tooltip("Prefab of the seed collectible to spawn when a tree dies.")]
     public GameObject seedPrefab;
 
+    [Tooltip("Reference to the VR player used to determine proximity.")]
     public Transform vrPlayer;
 
+    [Header("Timing")]
+    [Tooltip("Interval (seconds) between tree death events.")]
+    public float interval = 10f;
 
-    void Start()
+    /// <summary>Runtime clone of the terrain data (so editor asset is not modified).</summary>
+    [HideInInspector] public TerrainData clonedData;
+
+    private List<TreeInstance> treeList;
+
+    private void Start()
     {
-        // Clone terrain data to avoid modifying original in Editor
+        // Clone terrain data at runtime
         clonedData = Instantiate(terrain.terrainData);
         terrain.terrainData = clonedData;
 
+        // Build initial tree list (filtering prototype indices of interest: 0–3)
         treeList = new List<TreeInstance>(clonedData.treeInstances);
         treeList = treeList.FindAll(tree => tree.prototypeIndex >= 0 && tree.prototypeIndex <= 3);
-        InvokeRepeating("KillNearbyRandomTree", interval, interval);
 
+        // Schedule repeated tree deaths
+        InvokeRepeating(nameof(KillNearbyRandomTree), interval, interval);
 
         Debug.Log(treeList.Count);
     }
 
-    void KillNearbyRandomTree()
+    /// <summary>
+    /// Finds a random nearby tree (within radius) and triggers its death sequence.
+    /// </summary>
+    private void KillNearbyRandomTree()
     {
         if (treeList.Count == 0)
         {
-            CancelInvoke("KillNearbyRandomTree");
-            Debug.Log("✅ all trees were removed");
+            CancelInvoke(nameof(KillNearbyRandomTree));
+            Debug.Log("✅ All trees were removed.");
             return;
         }
 
         Vector3 playerPos = vrPlayer.position;
         float radius = 30f;
 
+        // Collect indices of nearby trees
         List<int> nearbyIndices = new List<int>();
-
         for (int i = 0; i < treeList.Count; i++)
         {
             Vector3 worldPos = Vector3.Scale(treeList[i].position, terrain.terrainData.size) + terrain.transform.position;
@@ -58,6 +78,7 @@ public class TreeDeathManager : MonoBehaviour
             return;
         }
 
+        // Pick a random tree among nearby ones
         int randomIndex = nearbyIndices[Random.Range(0, nearbyIndices.Count)];
         TreeInstance dyingTree = treeList[randomIndex];
 
@@ -69,6 +90,7 @@ public class TreeDeathManager : MonoBehaviour
             return;
         }
 
+        // Instantiate animated tree prefab at the tree’s location
         Vector3 treeWorldPos = Vector3.Scale(dyingTree.position, terrain.terrainData.size) + terrain.transform.position;
         float yRotation = dyingTree.rotation * 360f;
         Quaternion rotation = Quaternion.Euler(0, yRotation + 180, 0);
@@ -76,51 +98,47 @@ public class TreeDeathManager : MonoBehaviour
         GameObject newTree = Instantiate(treeType.animatedTreePrefab, treeWorldPos, rotation);
         StartCoroutine(AnimateFallingTree(newTree, prototypeIndex));
 
+        // Remove the tree from terrain
         treeList.RemoveAt(randomIndex);
         clonedData.treeInstances = treeList.ToArray();
 
         Debug.Log($"🌳 A random tree near player has died. Remaining trees: {treeList.Count}");
     }
 
-    IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex)
+    /// <summary>
+    /// Plays the full falling/dissolve sequence for a tree prefab.
+    /// </summary>
+    private IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex)
     {
-        // 1. پیدا کردن پارتیکل
+        // Step 1: Activate corruption aura if present
         Transform aura = treeGO.transform.Find("CorruptionAura");
-        if (aura != null)
-            aura.gameObject.SetActive(true);
+        if (aura != null) aura.gameObject.SetActive(true);
 
-        // 2. 2 ثانیه صبر کن تا هاله دیده شه
+        // Step 2: Wait to show aura
         yield return new WaitForSeconds(2f);
 
-        // 3. پارتیکل رو حذف کن
-        if (aura != null)
-            Destroy(aura.gameObject);
+        // Step 3: Remove aura
+        if (aura != null) Destroy(aura.gameObject);
 
-        // 4. پخش انیمیشن افتادن درخت
+        // Step 4: Play tree falling animation
         Animator anim = treeGO.GetComponent<Animator>();
-        if (anim != null)
-            anim.Play("TreeFall");
+        if (anim != null) anim.Play("TreeFall");
 
-        // 5. صبر کن تا انیمیشن تموم شه (فرض: 2.5 ثانیه)
+        // Step 5: Wait until animation ends (approx. 2.5s)
         yield return new WaitForSeconds(2.5f);
 
+        // Step 6: Force LOD to final level for dissolve
         LODGroup lodGroup = treeGO.GetComponentInChildren<LODGroup>();
-        if (lodGroup != null)
-        {
-            lodGroup.ForceLOD(3); // یا هر LODی که می‌خوای Dissolve بشه
-        }
+        if (lodGroup != null) lodGroup.ForceLOD(3);
 
-        // 6. شروع Dissolve روی LOD3
-        // دسترسی به LOD3 بدون اسم
+        // Step 7: Attempt to locate LOD3 child renderer for dissolve
         Transform lod3 = null;
-
         if (treeGO.transform.childCount >= 1)
         {
-            Transform modelRoot = treeGO.transform.GetChild(0); // فرزند دوم (مدل درخت)
+            Transform modelRoot = treeGO.transform.GetChild(0);
             int lastIndex = modelRoot.childCount - 1;
-
             if (lastIndex >= 0)
-                lod3 = modelRoot.GetChild(lastIndex); // آخرین بچه = LOD3
+                lod3 = modelRoot.GetChild(lastIndex);
         }
 
         if (lod3 != null)
@@ -129,15 +147,18 @@ public class TreeDeathManager : MonoBehaviour
             if (renderer != null)
             {
                 StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer, prototypeIndex));
-                yield break; // ادامه‌ی حذف داخل اون Coroutine انجام میشه
+                yield break; // Remainder handled in dissolve coroutine
             }
         }
 
-        // اگر چیزی پیدا نشد، درختو حذف کن
+        // If dissolve target not found, just destroy
         Destroy(treeGO);
     }
 
-    IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, float duration = 2f)
+    /// <summary>
+    /// Performs dissolve effect by animating the material’s alpha cutoff, then spawns a seed and destroys the tree.
+    /// </summary>
+    private IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, float duration = 2f)
     {
         float start = 0.3f;
         float end = 1f;
@@ -158,39 +179,35 @@ public class TreeDeathManager : MonoBehaviour
             yield return null;
         }
 
-        // مطمئن شو Dissolve کامل شده
+        // Ensure final cutoff applied
         foreach (var mat in materials)
         {
             if (mat.HasProperty("_Cutoff"))
                 mat.SetFloat("_Cutoff", end);
         }
 
-        // Instantiate Seed در محل درخت
+        // Spawn a seed collectible at the fallen tree’s base
         if (seedPrefab != null)
         {
-            Vector3 rayOrigin = renderer.bounds.center + Vector3.up * 5f; // از بالای درخت نگاه کن
+            Vector3 rayOrigin = renderer.bounds.center + Vector3.up * 5f;
             Ray ray = new Ray(rayOrigin, Vector3.down);
 
             if (Physics.Raycast(ray, out RaycastHit hitInfo, 10f))
             {
-                Vector3 spawnPos = hitInfo.point + Vector3.up * 0.1f; // کمی بالاتر از زمین
+                Vector3 spawnPos = hitInfo.point + Vector3.up * 0.1f;
                 GameObject seed = Instantiate(seedPrefab, spawnPos, Quaternion.identity);
 
-                // 👇 ست کردن prototypeIndex
+                // Assign prototype index to the new seed
                 SeedCollectible seedScript = seed.GetComponentInChildren<SeedCollectible>();
                 if (seedScript != null)
-                {
-                    seedScript.prototypeIndex = prototypeIndex; // از TreeInstance مرده گرفته میشه
-                }
+                    seedScript.prototypeIndex = prototypeIndex;
             }
             else
             {
-                Debug.LogWarning("🌱 [TreeDeathManager] Raycast برای یافتن زمین شکست خورد.");
+                Debug.LogWarning("🌱 [TreeDeathManager] Raycast failed to find ground for seed spawn.");
             }
         }
 
-       
         Destroy(treeGO);
     }
-
 }
