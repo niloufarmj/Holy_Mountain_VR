@@ -195,13 +195,19 @@ public class ThrowableStone : MonoBehaviour
         rb.angularVelocity = Random.insideUnitSphere * randomSpin;
     }
 
-    private void OnCollisionEnter(Collision c)
+    void OnCollisionEnter(Collision c)
     {
         if (IsHeld) return;
 
-        // Placeholder for notifying animals or other systems upon impact.
-        // var wander = c.collider.GetComponentInParent<AnimalWander>();
-        // if (wander) wander.OnHitByStone(lastThrower ? lastThrower.position : transform.position);
+        var animal = c.collider.GetComponentInParent<AnimalWander>();
+        if (animal != null)
+        {
+            Vector3 from = lastThrower ? lastThrower.position
+                                    : (transform.position - c.GetContact(0).normal * 0.2f);
+            animal.OnHitByStone(from); // ← متد جدید بالا
+        }
+
+        // SFX/ذره‌ای برخورد اختیاری...
     }
 
     /// <summary>

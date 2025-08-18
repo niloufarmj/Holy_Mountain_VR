@@ -1,45 +1,44 @@
 using UnityEngine;
 
-/// <summary>
-/// Handles VR (and keyboard) pickup and drop of stones.
-/// - Primary input: Oculus A button (configurable).
-/// - PC test input: keyboard key (default: E).
-/// - Picks up by raycasting from a controller; if nothing is hit,
-///   falls back to choosing the most forward stone inside a small sphere
-///   ahead of the controller.
-/// - On pickup, parents the stone to a hold anchor and triggers brief haptics.
-/// </summary>
 public class StonePickupVR : MonoBehaviour
 {
     [Header("Refs")]
-    [Tooltip("Ray origin, typically the right controller transform (e.g., RightControllerAnchor).")]
-    public Transform aimOrigin;
-
-    [Tooltip("Where the held stone should be attached (e.g., a point in front of the view).")]
-    public Transform holdAnchor;
-
-    [Tooltip("Physics layer used to identify stones (should be set to 'Stone').")]
+    public Transform aimOrigin;           // RightControllerAnchor
+    public Transform holdAnchor;          // ViewHoldAnchor (جلوی چشم)
+    public Transform trackingSpace;       // OVRCameraRig/TrackingSpace (برای تبدیل vel محلی به جهانی)
     public LayerMask stoneLayer;
 
-    [Header("Pickup Settings")]
-    [Tooltip("Maximum distance for direct raycast pickup.")]
+    [Header("Pickup")]
     public float pickDistance = 3f;
-
-    [Tooltip("Radius for the fallback sphere check (a small cone-like assist in front).")]
     public float sphereRadius = 0.2f;
+    public OVRInput.Button pickupButton = OVRInput.Button.One;           // A
+    public KeyCode pickupKey = KeyCode.E;                                 // تست PC
 
-    [Tooltip("VR pickup button (default: A on Oculus Touch).")]
-    public OVRInput.Button pickupButton = OVRInput.Button.One;
+    [Header("Throw (charge mode)")]
+    public OVRInput.Button throwHoldButton = OVRInput.Button.SecondaryIndexTrigger; // Right Trigger
+    public float minThrowSpeed = 6f;
+    public float maxThrowSpeed = 18f;
+    public float chargeTime = 1.0f;     // زمان تا رسیدن به max
+    public bool useGestureThrow = false; // اگر true: سرعت واقعی کنترلر
 
-    [Tooltip("Keyboard fallback for PC testing (default: E).")]
-    public KeyCode pickupKey = KeyCode.E;
+    [Header("Gesture tuning (only if useGestureThrow)")]
+    public float gestureMinSpeed = 4f;    // حداقل سرعت لازم
+    public float gestureMaxSpeed = 16f;   // سقف
+    public float forwardBoost = 2f;       // کمی بُست رو به جلو اضافه کن
 
-    // Currently held stone (if any)
     private ThrowableStone held;
+    private float chargeT = 0f;
+    private bool charging = false;
 
-    private void Reset()
+    // داخل StonePickupVR
+    [Header("Arc Preview")]
+    public bool showArc = true;
+    public LineRenderer arcLine;
+    public int arcResolution = 24;
+    public float previewSpeed = 14f; // باید تقریباً با maxThrowSpeed همخوان باشه
+
+    void Reset()
     {
-        // If layer mask wasn't set in the Inspector, attempt to auto-assign the 'Stone' layer.
         if (stoneLayer.value == 0)
         {
             int idx = LayerMask.NameToLayer("Stone");
@@ -47,103 +46,163 @@ public class StonePickupVR : MonoBehaviour
         }
     }
 
-    private void Update()
+    void Update()
     {
-        // Toggle behavior on press: pick up if free, otherwise drop.
-        bool pressed = OVRInput.GetDown(pickupButton) || Input.GetKeyDown(pickupKey);
-        if (!pressed) return;
+        // --- Pickup / Drop ---
+        bool pickPressed = OVRInput.GetDown(pickupButton) || Input.GetKeyDown(pickupKey);
+        if (pickPressed)
+        {
+            if (held == null) TryPickup();
+            else Drop();
+        }
 
-        if (held == null) TryPickup();
-        else Drop();
+        // --- Charge & Throw ---
+        bool holdTrig    = OVRInput.Get(throwHoldButton);
+        bool releaseTrig = OVRInput.GetUp(throwHoldButton);
+
+        if (held != null && holdTrig)
+        {
+            // شروع/ادامه شارژ
+            charging = true;
+            if (!useGestureThrow)
+                chargeT = Mathf.Clamp01(chargeT + Time.deltaTime / chargeTime);
+
+            // پیش‌نمایش آرک
+            if (showArc && arcLine)
+            {
+                float speedPreview = useGestureThrow
+                    ? previewSpeed
+                    : Mathf.Lerp(minThrowSpeed, maxThrowSpeed, chargeT);
+                Vector3 v0 = aimOrigin.forward * speedPreview;
+                DrawArc(aimOrigin.position, v0);
+            }
+        }
+        else
+        {
+            // وقتی رها شدی یا سنگ در دست نیست، آرک رو خاموش کن
+            if (arcLine && arcLine.enabled) arcLine.enabled = false;
+        }
+
+        if (held != null && charging && releaseTrig)
+        {
+            charging = false;
+            if (arcLine) arcLine.enabled = false;
+            Throw();
+        }
+
+
     }
 
-    /// <summary>
-    /// Attempts to pick up a stone by:
-    /// 1) Raycasting straight ahead from the controller.
-    /// 2) If nothing is hit, selecting the most forward stone inside a small sphere ahead.
-    /// </summary>
-    private void TryPickup()
+    void TryPickup()
     {
-        // 1) Direct raycast from controller
+        // 1) Ray مستقیم
         Ray ray = new Ray(aimOrigin.position, aimOrigin.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, pickDistance, stoneLayer, QueryTriggerInteraction.Ignore))
         {
             var stone = hit.collider.GetComponentInParent<ThrowableStone>();
-            if (stone != null && !stone.IsHeld)
-            {
-                Pickup(stone);
-                return;
-            }
+            if (stone != null && !stone.IsHeld) { Pickup(stone); return; }
         }
 
-        // 2) Fallback: find the most forward stone in a small sphere ahead
-        Collider[] hits = Physics.OverlapSphere(
-            aimOrigin.position + aimOrigin.forward * (pickDistance * 0.5f),
-            sphereRadius,
-            stoneLayer,
-            QueryTriggerInteraction.Ignore
-        );
-
+        // 2) نزدیک‌ترین جلو
+        Collider[] hits = Physics.OverlapSphere(aimOrigin.position + aimOrigin.forward * (pickDistance * 0.5f),
+                                                sphereRadius, stoneLayer, QueryTriggerInteraction.Ignore);
         ThrowableStone best = null;
-        float bestDot = 0.75f; // Only consider objects mostly in front
-
+        float bestDot = 0.75f;
         for (int i = 0; i < hits.Length; i++)
         {
             var s = hits[i].GetComponentInParent<ThrowableStone>();
-            if (s == null || s.IsHeld) continue;
-
+            if (!s || s.IsHeld) continue;
             Vector3 to = (s.transform.position - aimOrigin.position).normalized;
             float d = Vector3.Dot(aimOrigin.forward, to);
-            if (d > bestDot)
-            {
-                bestDot = d;
-                best = s;
-            }
+            if (d > bestDot) { bestDot = d; best = s; }
         }
-
         if (best != null) Pickup(best);
-        // If none found, do nothing.
     }
 
-    /// <summary>
-    /// Parents the stone to the hold anchor, resets local rotation, and fires a brief haptic pulse.
-    /// </summary>
-    private void Pickup(ThrowableStone stone)
+    void Pickup(ThrowableStone stone)
     {
         held = stone;
-        stone.PickUp(holdAnchor);
+        stone.PickUp(holdAnchor);                 // worldPositionStays داخل خود سنگ هندل شده
+        chargeT = 0f;
+        charging = false;
 
-        // Optional: set a neutral local rotation for nicer presentation
-        held.transform.localRotation = Quaternion.identity;
-
-        // Optional short haptic feedback on right controller
-        try { OVRInput.SetControllerVibration(0.1f, 0.2f, OVRInput.Controller.RTouch); } catch {}
-        Invoke(nameof(StopHaptics), 0.08f);
+        // هپتیک کوتاه
+        TryBuzz(0.1f, 0.25f, 0.08f);
     }
 
-    /// <summary>
-    /// Drops the currently held stone (if any).
-    /// </summary>
-    private void Drop()
+    void Drop()
     {
         if (held == null) return;
         held.Drop();
         held = null;
+        chargeT = 0f;
+        charging = false;
     }
 
-    /// <summary>
-    /// Stops any ongoing haptics on the right controller.
-    /// </summary>
-    private void StopHaptics()
+    void Throw()
     {
-        try { OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch); } catch {}
+        charging = false;
+
+        Vector3 velocity;
+
+        if (useGestureThrow)
+        {
+            // سرعت محلی کنترلر (در فضای Tracking)
+            Vector3 vLocal = OVRInput.GetLocalControllerVelocity(OVRInput.Controller.RTouch);
+            // تبدیل به ورلد
+            Transform ts = trackingSpace ? trackingSpace : aimOrigin; // fallback
+            Vector3 vWorld = ts.TransformVector(vLocal);
+
+            // کمی بُست در راستای aim برای پایداری
+            vWorld += aimOrigin.forward * forwardBoost;
+
+            float mag = Mathf.Clamp(vWorld.magnitude, gestureMinSpeed, gestureMaxSpeed);
+            velocity = vWorld.normalized * mag;
+        }
+        else
+        {
+            float speed = Mathf.Lerp(minThrowSpeed, maxThrowSpeed, chargeT);
+            velocity = aimOrigin.forward * speed;
+        }
+
+        held.Throw(velocity, aimOrigin);
+        held = null;
+        chargeT = 0f;
+
+        // هپتیک پرتاب
+        TryBuzz(0.05f, 0.4f, 0.06f);
     }
 
-    private void OnDrawGizmosSelected()
+    void TryBuzz(float f, float a, float dur)
+    {
+        try { OVRInput.SetControllerVibration(f, a, OVRInput.Controller.RTouch); } catch { }
+        Invoke(nameof(StopBuzz), dur);
+    }
+    void StopBuzz()
+    {
+        try { OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch); } catch { }
+    }
+
+    void OnDrawGizmosSelected()
     {
         if (!aimOrigin) return;
         Gizmos.color = new Color(0, 1, 1, 0.25f);
         Gizmos.DrawLine(aimOrigin.position, aimOrigin.position + aimOrigin.forward * pickDistance);
         Gizmos.DrawWireSphere(aimOrigin.position + aimOrigin.forward * (pickDistance * 0.5f), sphereRadius);
+    }
+    
+    void DrawArc(Vector3 startPos, Vector3 startVel) {
+        if (!arcLine) return;
+        arcLine.positionCount = arcResolution;
+        Vector3 p = startPos;
+        Vector3 v = startVel;
+        float dt = Time.fixedDeltaTime;
+
+        for (int i = 0; i < arcResolution; i++) {
+            arcLine.SetPosition(i, p);
+            v += Physics.gravity * dt;
+            p += v * dt;
+        }
+        arcLine.enabled = true;
     }
 }
