@@ -96,7 +96,7 @@ public class TreeDeathManager : MonoBehaviour
         Quaternion rotation = Quaternion.Euler(0, yRotation + 180, 0);
 
         GameObject newTree = Instantiate(treeType.animatedTreePrefab, treeWorldPos, rotation);
-        StartCoroutine(AnimateFallingTree(newTree, prototypeIndex));
+        StartCoroutine(AnimateFallingTree(newTree, prototypeIndex, treeWorldPos));
 
         // Remove the tree from terrain
         treeList.RemoveAt(randomIndex);
@@ -108,7 +108,7 @@ public class TreeDeathManager : MonoBehaviour
     /// <summary>
     /// Plays the full falling/dissolve sequence for a tree prefab.
     /// </summary>
-    private IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex)
+    private IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex, Vector3 baseWorldPos)
     {
         // Step 1: Activate corruption aura if present
         Transform aura = treeGO.transform.Find("CorruptionAura");
@@ -146,7 +146,7 @@ public class TreeDeathManager : MonoBehaviour
             Renderer renderer = lod3.GetComponent<Renderer>();
             if (renderer != null)
             {
-                StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer, prototypeIndex));
+                StartCoroutine(DissolveTreeViaAlphaCutoff(treeGO, renderer, prototypeIndex, baseWorldPos));
                 yield break; // Remainder handled in dissolve coroutine
             }
         }
@@ -158,7 +158,7 @@ public class TreeDeathManager : MonoBehaviour
     /// <summary>
     /// Performs dissolve effect by animating the material’s alpha cutoff, then spawns a seed and destroys the tree.
     /// </summary>
-    private IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, float duration = 2f)
+    private IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, Vector3 baseWorldPos, float duration = 2f)
     {
         float start = 0.3f;
         float end = 1f;
@@ -187,25 +187,32 @@ public class TreeDeathManager : MonoBehaviour
         }
 
         // Spawn a seed collectible at the fallen tree’s base
+        // --- جایگزین کامل منطق اسپاون ---
         if (seedPrefab != null)
         {
-            Vector3 rayOrigin = renderer.bounds.center + Vector3.up * 5f;
-            Ray ray = new Ray(rayOrigin, Vector3.down);
+            Vector3 spawnPos;
 
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, 10f))
+            // 1) تلاش اول: Raycast از بالای baseWorldPos به پایین (پایدار روی هر سطح/کالایدر)
+            Vector3 rayStart = baseWorldPos + Vector3.up * 5f;
+            if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, ~0, QueryTriggerInteraction.Ignore))
             {
-                Vector3 spawnPos = hitInfo.point + Vector3.up * 0.1f;
-                GameObject seed = Instantiate(seedPrefab, spawnPos, Quaternion.identity);
-
-                // Assign prototype index to the new seed
-                SeedCollectible seedScript = seed.GetComponentInChildren<SeedCollectible>();
-                if (seedScript != null)
-                    seedScript.prototypeIndex = prototypeIndex;
+                spawnPos = hit.point + Vector3.up * 0.1f;
             }
             else
             {
-                Debug.LogWarning("🌱 [TreeDeathManager] Raycast failed to find ground for seed spawn.");
+                // 2) fallback: SampleHeight از Terrain
+                float y = baseWorldPos.y;
+                if (terrain != null && terrain.terrainData != null)
+                    y = terrain.SampleHeight(baseWorldPos) + terrain.transform.position.y;
+
+                spawnPos = new Vector3(baseWorldPos.x, y, baseWorldPos.z) + Vector3.up * 0.1f;
             }
+
+            GameObject seed = Instantiate(seedPrefab, spawnPos, Quaternion.identity);
+
+            // prototypeIndex را ست کن (مثل قبل)
+            SeedCollectible sc = seed.GetComponentInChildren<SeedCollectible>();
+            if (sc != null) sc.prototypeIndex = prototypeIndex;
         }
 
         Destroy(treeGO);
