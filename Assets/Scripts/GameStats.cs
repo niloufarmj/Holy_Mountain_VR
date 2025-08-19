@@ -34,13 +34,14 @@ public class GameStats : MonoBehaviour
     /// If the type doesn't exist yet, a new entry is created.
     /// </summary>
     /// <param name="prototypeIndex">Tree prototype index (type identifier).</param>
+    public event System.Action OnSeedsChanged;
+
     public void AddSeed(int prototypeIndex)
     {
         var entry = seedInventory.Find(e => e.prototypeIndex == prototypeIndex);
-        if (entry != null)
-            entry.count++;
-        else
-            seedInventory.Add(new SeedInventoryEntry { prototypeIndex = prototypeIndex, count = 1 });
+        if (entry != null) entry.count++;
+        else seedInventory.Add(new SeedInventoryEntry { prototypeIndex = prototypeIndex, count = 1 });
+        OnSeedsChanged?.Invoke();   // NEW
     }
 
     /// <summary>
@@ -55,21 +56,16 @@ public class GameStats : MonoBehaviour
     /// Does nothing if the type is missing or the count is zero.
     /// </summary>
     /// <param name="prototypeIndex">Tree prototype index to consume.</param>
+    
+
     public void UseSeed(int prototypeIndex)
     {
         var entry = seedInventory.Find(e => e.prototypeIndex == prototypeIndex);
         if (entry != null && entry.count > 0)
+        {
             entry.count--;
-    }
-
-    /// <summary>
-    /// Increments collected stones by one and updates the stones UI label.
-    /// </summary>
-    public void AddStone()
-    {
-        stoneCount++;
-        if (stonesText != null)
-            stonesText.text = $"Stones Collected: {stoneCount}";
+            OnSeedsChanged?.Invoke(); // NEW
+        }
     }
 
     /// <summary>

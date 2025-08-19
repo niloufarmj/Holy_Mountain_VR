@@ -31970,6 +31970,30 @@ MonoBehaviour:
     m_warpOffset: {x: 0, y: 0, z: 0, w: 0}
   m_inputTerrain: {fileID: 0}
   m_advancedInputSettingsUnfolded: 0
+--- !u!114 &1092490546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
+    scale: {x: 11.718748, y: 1, z: 11.718748}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Billow
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.6940000057220459,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.8700000047683716,"warpIterations":4.090000152587891,"warpStrength":0.46399998664855959,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1 &1100067178
 GameObject:
   m_ObjectHideFlags: 0
@@ -37563,6 +37587,8 @@ MonoBehaviour:
     m_Bits: 4294967295
   targetTerrain: {fileID: 1340084960}
   selectedPrototypeIndex: -1
+  inputLocked: 0
+  plantCooldown: 0.25
 --- !u!4 &1290570275
 Transform:
   m_ObjectHideFlags: 0
@@ -38759,6 +38785,7 @@ GameObject:
   - component: {fileID: 1361337903}
   - component: {fileID: 1361337906}
   - component: {fileID: 1361337907}
+  - component: {fileID: 1361337908}
   m_Layer: 5
   m_Name: InGame UI
   m_TagString: Untagged
@@ -38898,6 +38925,27 @@ MonoBehaviour:
   selectedColor: {r: 0.47, g: 1, b: 0.3137255, a: 0.9019608}
   availableColor: {r: 0.6666667, g: 0.6666667, b: 0.6666667, a: 0.78431374}
   disabledColor: {r: 0.47058824, g: 0.23137255, b: 0.23137255, a: 0.39215687}
+  panelOpen: 0
+  autoClose: 1
+  autoCloseSeconds: 10
+  autoCloseWhenEmptySeconds: 5
+--- !u!114 &1361337908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1361337901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87351fb2140b55245a5e6301e290f902, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraTransform: {fileID: 960416550}
+  distance: 0.9
+  heightOffset: -0.1
+  followLerp: 12
+  yawOnly: 1
 --- !u!1001 &1366679411
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41830,7 +41878,7 @@ MonoBehaviour:
       m_warpIterations: 4.09
       m_warpStrength: 0.464
       m_warpOffset: {x: 222.59402, y: -401.83527, z: 842.6193, w: 0}
-    m_noiseSettings: {fileID: 1734537569}
+    m_noiseSettings: {fileID: 1092490546}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -44555,30 +44603,6 @@ MonoBehaviour:
   m_worldMapStampSettings: {fileID: 289085148}
   m_oldTerrainOffsetX: 0
   m_oldTerrainOffsetZ: 0
---- !u!114 &1734537569
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
-    scale: {x: 11.718748, y: 1, z: 11.718748}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Billow
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.6940000057220459,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.8700000047683716,"warpIterations":4.090000152587891,"warpStrength":0.46399998664855959,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &1747363677
 PrefabInstance:
   m_ObjectHideFlags: 0

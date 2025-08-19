@@ -31,6 +31,13 @@ public class TreePlanter : MonoBehaviour
     /// </summary>
     [HideInInspector] public int selectedPrototypeIndex = -1;
 
+    [Header("Input Gate")]
+    public bool inputLocked = false;     // وقتی پنل بازه = true
+    public float plantCooldown = 0.25f;  // فاصله‌ی بین دو کاشت
+    float _lastPlantTime;
+
+    SeedInventoryUI invUI;
+
     private void Start()
     {
         stats = FindObjectOfType<GameStats>();
@@ -38,14 +45,22 @@ public class TreePlanter : MonoBehaviour
         {
             Debug.LogWarning("[TreePlanter] GameStats not found in scene.");
         }
+
+        invUI = FindObjectOfType<SeedInventoryUI>();   // برای چک باز بودن پنل
     }
 
     private void Update()
     {
-        // Plant button: Oculus B button or fallback P key
-        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P))
+        // وقتی پنل بازه یا لاک فعاله، ورودی B را نخوان
+        if (inputLocked || (invUI != null && invUI.panelOpen)) return;
+
+
+        // Plant button: B / P با کول‌داون
+        if (Time.time - _lastPlantTime > plantCooldown &&
+            (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P)))
         {
             TryPlantSelectedTree();
+            _lastPlantTime = Time.time;
         }
     }
 

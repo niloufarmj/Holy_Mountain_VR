@@ -49,7 +49,7 @@ public class SeedInventoryUI : MonoBehaviour
 
     // Navigation state
     private int selectedIndex = 0;
-    private bool panelOpen = false;
+    public bool panelOpen = false;
     private float inputCooldown = 0.2f;
     private float lastInputTime;
 
@@ -57,12 +57,25 @@ public class SeedInventoryUI : MonoBehaviour
     private GameStats stats;
     private TreePlanter planter;
 
+
+    [Header("Auto-close")]
+    public bool autoClose = true;
+    public float autoCloseSeconds = 10f;           // وقتی آیتم داری
+    public float autoCloseWhenEmptySeconds = 5f;   // اگر موجودی 0 بود (دلخواه)
+    private float inactivityTimer = 0f;
+
     private void Start()
     {
         stats = FindObjectOfType<GameStats>();
         planter = FindObjectOfType<TreePlanter>();
+        if (stats) stats.OnSeedsChanged += UpdateUI;   // NEW
         UpdateUI();
         panelRoot.SetActive(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (stats) stats.OnSeedsChanged -= UpdateUI;   // NEW
     }
 
     private void Update()
@@ -87,6 +100,23 @@ public class SeedInventoryUI : MonoBehaviour
             selectedIndex = Mathf.Clamp(selectedIndex + dir, 0, items.Length - 1);
             UpdateUI();
             lastInputTime = Time.time;
+            MarkInteraction();
+        }
+
+        // --- Auto-close when idle ---
+        if (panelOpen && autoClose)
+        {
+            inactivityTimer += Time.deltaTime;
+
+            // اگر خالیه، زودتر ببنده (اختیاری)
+            bool hasAny = false;
+            for (int i = 0; i < items.Length; i++)
+                if (stats.HasSeed(items[i].prototypeIndex)) { hasAny = true; break; }
+
+            float limit = hasAny ? autoCloseSeconds : autoCloseWhenEmptySeconds;
+
+            if (inactivityTimer >= limit)
+                ClosePanel();
         }
     }
 
@@ -96,9 +126,12 @@ public class SeedInventoryUI : MonoBehaviour
     private void OpenPanel()
     {
         panelOpen = true;
+        inactivityTimer = 0f;       // ← شروع از صفر
         selectedIndex = 0;
         UpdateUI();
         panelRoot.SetActive(true);
+
+        if (planter) planter.inputLocked = true;   // NEW
     }
 
     /// <summary>
@@ -108,6 +141,8 @@ public class SeedInventoryUI : MonoBehaviour
     {
         panelOpen = false;
         panelRoot.SetActive(false);
+
+        if (planter) planter.inputLocked = false;  // NEW
     }
 
     /// <summary>
@@ -119,12 +154,12 @@ public class SeedInventoryUI : MonoBehaviour
     /// </summary>
     private void TrySelect()
     {
+        MarkInteraction();
         int proto = items[selectedIndex].prototypeIndex;
         if (stats.HasSeed(proto))
         {
             planter.selectedPrototypeIndex = proto;
             planter.TryPlantSelectedTree();
-            stats.UseSeed(proto);
             ClosePanel();
         }
         else
@@ -171,4 +206,11 @@ public class SeedInventoryUI : MonoBehaviour
         }
         return 0;
     }
+
+    // کمک‌متد برای ریست تایمر
+    private void MarkInteraction()
+    {
+        inactivityTimer = 0f;
+    }
+
 }
