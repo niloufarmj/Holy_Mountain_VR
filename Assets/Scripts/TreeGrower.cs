@@ -55,12 +55,18 @@ public class TreeGrower : MonoBehaviour
     private float growTimer = 0f;
     private float shrinkTimer = 0f;
 
-    private void Start()
+    [Header("FX")]
+    public Transform auraAttach;         // اگر خالی بود، خودِ transform
+    GameObject eatingAuraInstance;
+    [SerializeField] float auraScaleMultiplier = 1.05f; // 5% larger than the tree
+
+    void Start()
     {
         rend = GetComponent<Renderer>();
         currentMats = new Material[1] { barkMat };
         rend.materials = currentMats;
         transform.localScale = Vector3.zero;
+        if (!auraAttach) auraAttach = transform;
     }
 
     /// <summary>
@@ -218,8 +224,44 @@ public class TreeGrower : MonoBehaviour
     {
         if (!currentEaters.Contains(animal))
             currentEaters.Add(animal);
-
         activeEaters++;
+
+        if (eatingAuraInstance == null)
+        {
+            // try to find a child named EatingAura_Red
+            var child = transform.Find("EatingAura_Red");
+            if (child) eatingAuraInstance = child.gameObject;
+        }
+
+        if (eatingAuraInstance)
+        {
+            // ensure it’s parented and aligned to the tree
+            var t = eatingAuraInstance.transform;
+            if (t.parent != auraAttach) t.SetParent(auraAttach ? auraAttach : transform, false);
+            t.localPosition = Vector3.zero;
+            t.localRotation = Quaternion.identity;
+
+            // --- SCALE ---
+            // We want the aura's *world* scale to match this tree's world scale (× multiplier).
+            // If the aura is a direct child of this object, localScale = Vector3.one * multiplier is enough.
+            if (t.parent == transform || t.parent == (auraAttach ? auraAttach : transform))
+            {
+                t.localScale = Vector3.one * auraScaleMultiplier;
+            }
+            else
+            {
+                // robust case: compute local scale that yields desired world scale
+                Vector3 desiredWorld = transform.lossyScale * auraScaleMultiplier;
+                Vector3 parentWorld  = t.parent ? t.parent.lossyScale : Vector3.one;
+                t.localScale = new Vector3(
+                    desiredWorld.x / Mathf.Max(parentWorld.x, 1e-6f),
+                    desiredWorld.y / Mathf.Max(parentWorld.y, 1e-6f),
+                    desiredWorld.z / Mathf.Max(parentWorld.z, 1e-6f)
+                );
+            }
+
+            eatingAuraInstance.SetActive(true);
+        }
     }
 
     /// <summary>
@@ -229,5 +271,12 @@ public class TreeGrower : MonoBehaviour
     {
         currentEaters.Remove(animal);
         activeEaters = Mathf.Max(0, activeEaters - 1);
+
+        if (activeEaters == 0 && eatingAuraInstance != null)
+        {
+            eatingAuraInstance.SetActive(false);
+            // اگر Prefab Instance ساختی و نمی‌خواهی نگه داری:
+            // Destroy(eatingAuraInstance); eatingAuraInstance = null;
+        }
     }
 }

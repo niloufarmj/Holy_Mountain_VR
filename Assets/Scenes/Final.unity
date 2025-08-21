@@ -1198,6 +1198,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 80312255}
   m_CullTransparentMesh: 1
+--- !u!114 &80532861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
+    scale: {x: 11.718748, y: 1, z: 11.718748}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Billow
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.6940000057220459,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.8700000047683716,"warpIterations":4.090000152587891,"warpStrength":0.46399998664855959,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &87792380
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29073,6 +29097,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 960416562}
+    - targetCorrespondingSourceObject: {fileID: 1983321904398200, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1520201837}
+    - targetCorrespondingSourceObject: {fileID: 1054112583220142, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1424991067}
   m_SourcePrefab: {fileID: 100100000, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
 --- !u!4 &960416550 stripped
 Transform:
@@ -39215,6 +39245,33 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4846720859247739437, guid: 7b2aa901361134c41ab5d7d475e237e0, type: 3}
   m_PrefabInstance: {fileID: 586590443}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1424991066 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1054112583220142, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+  m_PrefabInstance: {fileID: 960416549}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1424991067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424991066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72cc1f4272b332441bca00abbc6e99da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aimOrigin: {fileID: 960416554}
+  controller: 2
+  seedLayer:
+    serializedVersion: 2
+    m_Bits: 32768
+  touchRadius: 0.18
+  reachDistance: 0.6
+  collectButton: 1
+  collectKey: 101
+  debugDraw: 0
 --- !u!1 &1429092730
 GameObject:
   m_ObjectHideFlags: 0
@@ -40341,6 +40398,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1520201836 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1983321904398200, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+  m_PrefabInstance: {fileID: 960416549}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1520201837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1520201836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72cc1f4272b332441bca00abbc6e99da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aimOrigin: {fileID: 960416556}
+  controller: 1
+  seedLayer:
+    serializedVersion: 2
+    m_Bits: 32768
+  touchRadius: 0.18
+  reachDistance: 0.6
+  collectButton: 1
+  collectKey: 101
+  debugDraw: 0
 --- !u!1001 &1520989398
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41856,7 +41940,7 @@ MonoBehaviour:
       m_warpIterations: 4.09
       m_warpStrength: 0.464
       m_warpOffset: {x: 222.59402, y: -401.83527, z: 842.6193, w: 0}
-    m_noiseSettings: {fileID: 1980244695}
+    m_noiseSettings: {fileID: 80532861}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -53044,30 +53128,6 @@ Transform:
   - {fileID: 757773817}
   m_Father: {fileID: 1160441224}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1980244695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: 632.4618, y: -432.58185, z: 501.35287}
-    scale: {x: 11.718748, y: 1, z: 11.718748}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Billow
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":222.59402465820313,"y":-401.83526611328127,"z":842.6193237304688,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.6940000057220459,"frequency":1.0,"persistence":0.800000011920929,"lacunarity":0.8700000047683716,"warpIterations":4.090000152587891,"warpStrength":0.46399998664855959,"warpEnabled":true,"warpExpanded":true}'
 --- !u!114 &2000158110 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8865606807613006544, guid: 9dc8a116a749c9641a9174230c6b0e11, type: 3}

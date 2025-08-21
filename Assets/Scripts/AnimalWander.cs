@@ -17,6 +17,16 @@ public class AnimalWander : MonoBehaviour
     public float minWalkTime = 6f;
     public float maxWalkTime = 12f;
     public float walkAnimChangeInterval = 5f;
+    
+
+    [Header("Approach/Eating")]
+    public float eatDistance = 0.7f;         // فاصله‌ای که کافی است تا شروع به خوردن کند
+    public float approachRadius = 1.5f;      // شعاعی که اطراف درخت در NavMesh دنبال نقطه می‌گردیم
+    public float repathInterval = 0.6f;      // هر چند وقت یک بار مقصد را به‌روز کنیم
+
+    float repathTimer = 0f;
+    float defaultStoppingDistance;
+
 
     // NEW: واکنش به سنگ
     [Header("Scare Reaction")]
@@ -47,32 +57,45 @@ public class AnimalWander : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        defaultStoppingDistance = agent.stoppingDistance;
         StartIdling();
     }
 
-    private void Update()
+    void Update()
     {
         float currentSpeed = agent.velocity.magnitude;
         animator.SetFloat(speedParameter, currentSpeed > 0.05f ? 1f : 0f);
 
         stateTimer -= Time.deltaTime;
+        repathTimer -= Time.deltaTime;
 
-        // NEW: اگر در کول‌داون ترس هستیم، هیچ هدف درختی را دنبال نکنیم
+        // اگر ترسیده‌ایم، جذب درخت را پاک کن
         if (Time.time < scaredUntil && targetTree != null)
             targetTree = null;
 
-        // سوئیچ به Eating وقتی به درخت رسیدیم (اگر کول‌داون نیستیم)
-        if (targetTree != null &&
-            Time.time >= scaredUntil &&
-            Vector3.Distance(transform.position, targetTree.position) < targetReachedThreshold)
+        // --- نزدیک شدن/خوردن ---
+        if (targetTree != null && Time.time >= scaredUntil)
         {
-            if (currentState != AnimalState.Eating)
+            float dist = Vector3.Distance(transform.position, targetTree.position);
+
+            if (dist > eatDistance)
             {
-                StartEating();
+                // نزدیک شو
+                if (repathTimer <= 0f)
+                {
+                    ApproachTree();
+                    repathTimer = repathInterval;
+                }
             }
-            return;
+            else
+            {
+                if (currentState != AnimalState.Eating)
+                    StartEating();
+                return; // وقتی می‌خوریم، بقیه‌ی رفتارها بی‌اثر باشند
+            }
         }
 
+        // --- چرخه‌ی راه‌رفتن/ایستادن قبلی ---
         if (currentState == AnimalState.Walking)
         {
             walkAnimChangeTimer -= Time.deltaTime;
@@ -92,16 +115,37 @@ public class AnimalWander : MonoBehaviour
         }
     }
 
+    void ApproachTree()
+    {
+        if (!targetTree) return;
+
+        agent.stoppingDistance = eatDistance * 0.9f; // کمی کمتر از آستانه
+        Vector3 around = targetTree.position;
+        if (NavMesh.SamplePosition(around, out NavMeshHit hit, approachRadius, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+            currentState = AnimalState.Walking;
+        }
+        else
+        {
+            // اگر NavMesh نبود، حداقل سعی کن سمت خود درخت بروی
+            agent.SetDestination(around);
+            currentState = AnimalState.Walking;
+        }
+    }
+
+
     private void StartEating()
     {
         currentState = AnimalState.Eating;
         agent.ResetPath();
+        agent.stoppingDistance = defaultStoppingDistance; // برگردان
         animator.SetFloat(speedParameter, 0f);
 
         if (targetTree != null)
         {
             TreeGrower grower = targetTree.GetComponent<TreeGrower>();
-            if (grower != null) grower.StartEating(this);
+            if (grower != null) grower.StartEating(this); // موجود است. :contentReference[oaicite:2]{index=2}
         }
         animator.SetBool("IsEating", true);
     }
@@ -113,9 +157,10 @@ public class AnimalWander : MonoBehaviour
         if (targetTree != null)
         {
             TreeGrower grower = targetTree.GetComponent<TreeGrower>();
-            if (grower != null) grower.StopEating(this);
+            if (grower != null) grower.StopEating(this); // موجود است. :contentReference[oaicite:3]{index=3}
         }
 
+        agent.stoppingDistance = defaultStoppingDistance;
         targetTree = null;
         StartIdling();
     }
@@ -213,8 +258,9 @@ public class AnimalWander : MonoBehaviour
     // اگر در کول‌داون ترس است، درخواست هدف جدید را نادیده بگیر
     public void SetTargetTree(Transform tree)
     {
-        if (Time.time < scaredUntil) return; // NEW
+        if (Time.time < scaredUntil) return; // همان گارد
         targetTree = tree;
+        repathTimer = 0f; // فوراً مسیر بگیر
     }
 
     public void ForceStopEating()
