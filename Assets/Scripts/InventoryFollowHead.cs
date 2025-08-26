@@ -1,55 +1,57 @@
 using UnityEngine;
 
-public class InventoryFollowHead : MonoBehaviour
+public class UIStickToHMD : MonoBehaviour
 {
-    public Transform cameraTransform;      // CenterEyeAnchor
-    public float distance = 0.9f;
-    public float heightOffset = -0.1f;
-    public float followLerp = 12f;
-    public bool yawOnly = true;
+    [Header("HMD / Camera")]
+    public Transform cameraTransform;        // بزار CenterEyeAnchor یا Camera.main
+    public bool autoFindCamera = true;
 
-    [Header("Fixes")]
-    public bool fixMirroringByParity = true;   // اگر true باشد، اسکیل محلی را طوری تنظیم می‌کند که حاصل‌ضرب مقیاس‌های جهانی مثبت شود
-    public bool debugLogs = false;
+    [Header("Placement")]
+    public float distance = 0.9f;            // جلو چشم
+    public float verticalOffset = -0.05f;    // کمی پایین‌تر از خط دید
+    public bool yawOnly = true;              // فقط چرخش افقی (VR-friendly)
+    public float smooth = 14f;               // نرمی حرکت/چرخش
+
+    void Awake()
+    {
+        if (autoFindCamera && !cameraTransform)
+        {
+            var cam = Camera.main;
+            if (cam) cameraTransform = cam.transform;
+            if (!cameraTransform)
+            {
+                var t = GameObject.Find("CenterEyeAnchor");
+                if (t) cameraTransform = t.transform;
+            }
+        }
+
+        // اطمینان از اسکیل مثبت (جلوگیری از میرِر شدن)
+        var ls = transform.localScale;
+        transform.localScale = new Vector3(Mathf.Abs(ls.x), Mathf.Abs(ls.y), Mathf.Abs(ls.z));
+    }
 
     void LateUpdate()
     {
         if (!cameraTransform) return;
 
-        // 1) جای پنل جلوِ چشم
+        // جهت جلو + آپ
         Vector3 fwd = cameraTransform.forward;
-        if (yawOnly) fwd = Vector3.ProjectOnPlane(fwd, Vector3.up).normalized;
+        Vector3 up  = cameraTransform.up;
 
-        Vector3 targetPos = cameraTransform.position + fwd * distance + Vector3.up * heightOffset;
-        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * followLerp);
+        if (yawOnly)
+        {
+            fwd = Vector3.ProjectOnPlane(fwd, Vector3.up).normalized;
+            up  = Vector3.up;
+        }
 
-        // 2) چرخش: پنل باید «به سمتِ دوربین» نگاه کند
+        // جای‌گذاری جلوِ صورت
+        Vector3 targetPos = cameraTransform.position + fwd * distance + up * verticalOffset;
+        transform.position = Vector3.Lerp(transform.position, targetPos, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+
+        // *** نکته کلیدی: به خودِ دوربین نگاه کن (LookAt) تا اشتباه علامت پیش نیاد ***
         Vector3 toCam = cameraTransform.position - transform.position;
-        if (yawOnly) toCam = Vector3.ProjectOnPlane(toCam, Vector3.up);
-        if (toCam.sqrMagnitude < 1e-6f) toCam = transform.forward;
-
-        // رو به دوربین
-        Quaternion want = Quaternion.LookRotation(toCam.normalized, Vector3.up);
-        transform.rotation = Quaternion.Slerp(transform.rotation, want, Time.deltaTime * followLerp);
-
-        // 3) اگر به هر دلیل هنوز پشت به دوربین بود، 180 درجه بچرخان
-        float facingDot = Vector3.Dot(transform.forward, (cameraTransform.position - transform.position).normalized);
-        if (facingDot < 0f)
-        {
-            transform.rotation = Quaternion.Euler(0f, transform.rotation.eulerAngles.y + 180f, 0f);
-        }
-
-        // 4) فیکس ریشه‌ای mirroring: اگر حاصل‌ضرب مقیاس‌های جهانی منفی بود، localScale.x را برعکس می‌کنیم
-        if (fixMirroringByParity)
-        {
-            Vector3 ls = transform.lossyScale;
-            float parity = Mathf.Sign(ls.x) * Mathf.Sign(ls.y) * Mathf.Sign(ls.z); // <0 یعنی آینه‌ای
-            if (parity < 0f)
-            {
-                Vector3 l = transform.localScale;
-                transform.localScale = new Vector3(-l.x, l.y, l.z); // یک محور را برعکس کن تا parity مثبت شود
-                if (debugLogs) Debug.Log("[InventoryFollowHead] Mirroring fixed by flipping localScale.x");
-            }
-        }
+        if (yawOnly) { toCam.y = 0f; if (toCam.sqrMagnitude < 1e-6f) toCam = fwd; }
+        Quaternion want = Quaternion.LookRotation(toCam.normalized, up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, want, 1f - Mathf.Exp(-smooth * Time.deltaTime));
     }
 }

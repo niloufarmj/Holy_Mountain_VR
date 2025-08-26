@@ -17,7 +17,7 @@ public class AnimalWander : MonoBehaviour
     public float minWalkTime = 6f;
     public float maxWalkTime = 12f;
     public float walkAnimChangeInterval = 5f;
-    
+
 
     [Header("Approach/Eating")]
     public float eatDistance = 0.7f;         // فاصله‌ای که کافی است تا شروع به خوردن کند
@@ -53,10 +53,35 @@ public class AnimalWander : MonoBehaviour
     // NEW:
     private float scaredUntil = -1f;
 
+    [Header("Audio (Eating Loop)")]
+    [SerializeField] private AudioClip eatingLoopSfx;
+    [SerializeField, Range(0f, 1f)] private float eatingLoopVolume = 0.7f;
+    [SerializeField] private float eatingMinDistance = 1.5f;
+    [SerializeField] private float eatingMaxDistance = 20f;
+    [SerializeField] private bool eatingRandomizePitch = true;
+    [SerializeField, Range(0f, 0.2f)] private float eatingPitchJitter = 0.04f;
+
+    private AudioSource _eatSrc;
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+
+        if (eatingLoopSfx != null)
+        {
+            _eatSrc = gameObject.AddComponent<AudioSource>();
+            _eatSrc.playOnAwake = false;
+            _eatSrc.loop = true;                    // keep going while eating
+            _eatSrc.clip = eatingLoopSfx;
+            _eatSrc.volume = eatingLoopVolume;
+            _eatSrc.spatialBlend = 1f;              // 3D for VR
+            _eatSrc.rolloffMode = AudioRolloffMode.Logarithmic;
+            _eatSrc.minDistance = eatingMinDistance;
+            _eatSrc.maxDistance = eatingMaxDistance;
+            _eatSrc.spatialize = true;              // if your XR audio plugin supports it
+        }
+
         defaultStoppingDistance = agent.stoppingDistance;
         StartIdling();
     }
@@ -148,6 +173,17 @@ public class AnimalWander : MonoBehaviour
             if (grower != null) grower.StartEating(this); // موجود است. :contentReference[oaicite:2]{index=2}
         }
         animator.SetBool("IsEating", true);
+
+        // --- NEW: eating loop SFX ---
+        if (_eatSrc != null)
+        {
+            if (eatingRandomizePitch)
+                _eatSrc.pitch = 1f + Random.Range(-eatingPitchJitter, eatingPitchJitter);
+
+            if (!_eatSrc.isPlaying) _eatSrc.Play();
+            else _eatSrc.UnPause(); // in case it was paused elsewhere
+        }
+
     }
 
     private void StopEating()
@@ -159,6 +195,10 @@ public class AnimalWander : MonoBehaviour
             TreeGrower grower = targetTree.GetComponent<TreeGrower>();
             if (grower != null) grower.StopEating(this); // موجود است. :contentReference[oaicite:3]{index=3}
         }
+
+        // --- NEW: stop eating SFX ---
+        if (_eatSrc != null && _eatSrc.isPlaying)
+            _eatSrc.Stop();
 
         agent.stoppingDistance = defaultStoppingDistance;
         targetTree = null;
@@ -266,5 +306,14 @@ public class AnimalWander : MonoBehaviour
     public void ForceStopEating()
     {
         StopEating();
+    }
+    
+    private void OnDisable()
+    {
+        if (_eatSrc != null && _eatSrc.isPlaying) _eatSrc.Stop();
+    }
+    private void OnDestroy()
+    {
+        if (_eatSrc != null && _eatSrc.isPlaying) _eatSrc.Stop();
     }
 }

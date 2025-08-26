@@ -272,3 +272,11 @@ MonoBehaviour:
   disableCollidersWhileHeld: 1
   startAsStaticOnGround: 1
   randomSpin: 8
+  animalHitClip: {fileID: 8300000, guid: 82d22dfdeb0223a4295a92e1dc14a40b, type: 3}
+  animalHitVolume: 0.9
+  minSpeedForSfx: 1.2
+  maxSpeedForFullVolume: 8
+  pitchJitter: 0.08
+  sfxCooldown: 0.1
+  sfxMinDistance: 1.5
+  sfxMaxDistance: 25

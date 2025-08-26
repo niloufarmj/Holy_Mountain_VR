@@ -25,6 +25,19 @@ public class TreeDeathManager : MonoBehaviour
     [Tooltip("Interval (seconds) between tree death events.")]
     public float interval = 10f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip treeDeathSfx;       // your combined aura+fall clip
+    [Range(0f,1f)]
+    [SerializeField] private float treeDeathVolume = 0.9f; // tweak in Inspector
+
+    // --- Audio (Tree Dissolve) ---
+    [SerializeField] private AudioClip treeDissolveSfx;
+    [SerializeField, Range(0f,1f)] private float treeDissolveVolume = 0.8f;
+
+    // --- Audio (Seed Spawn) ---
+    [SerializeField] private AudioClip seedSpawnSfx;
+    [SerializeField, Range(0f,1f)] private float seedSpawnVolume = 0.85f;
+
     /// <summary>Runtime clone of the terrain data (so editor asset is not modified).</summary>
     [HideInInspector] public TerrainData clonedData;
 
@@ -197,6 +210,13 @@ public class TreeDeathManager : MonoBehaviour
     /// </summary>
     private IEnumerator AnimateFallingTree(GameObject treeGO, int prototypeIndex, Vector3 baseWorldPos)
     {
+        // --- Play combined Aura+Fall SFX exactly at start ---
+        if (treeDeathSfx != null)
+        {
+            // Spawns a temporary AudioSource at world position and destroys it after playback.
+            AudioSource.PlayClipAtPoint(treeDeathSfx, baseWorldPos, treeDeathVolume);
+        }
+
         // Step 1: Activate corruption aura if present
         Transform aura = treeGO.transform.Find("CorruptionAura");
         if (aura != null) aura.gameObject.SetActive(true);
@@ -253,6 +273,10 @@ public class TreeDeathManager : MonoBehaviour
     /// </summary>
     private IEnumerator DissolveTreeViaAlphaCutoff(GameObject treeGO, Renderer renderer, int prototypeIndex, Vector3 baseWorldPos, float duration = 2f)
     {
+        // Play dissolve SFX at stump position (auto-destroys after playback)
+        if (treeDissolveSfx != null)
+            AudioSource.PlayClipAtPoint(treeDissolveSfx, baseWorldPos, treeDissolveVolume);
+
         float start = 0.3f;
         float end = 1f;
         float t = 0f;
@@ -305,6 +329,10 @@ public class TreeDeathManager : MonoBehaviour
 
             GameObject seed = Instantiate(seedPrefab, spawnPos, Quaternion.identity);
             NormalizeSeedColliders(seed);
+
+            // SFX: seed spawn ping at the seed's position
+            if (seedSpawnSfx)
+                AudioSource.PlayClipAtPoint(seedSpawnSfx, seed.transform.position, seedSpawnVolume);
 
             // prototypeIndex را ست کن (مثل قبل)
             SeedCollectible sc = seed.GetComponentInChildren<SeedCollectible>();

@@ -23,6 +23,11 @@ public class TreePlanter : MonoBehaviour
     [Tooltip("Target terrain where permanent tree instances are stored.")]
     public Terrain targetTerrain;
 
+    // --- Add near other serialized fields ---
+    [Header("Audio")]
+    [SerializeField] private AudioClip plantSfx;
+    [SerializeField, Range(0f,1f)] private float plantSfxVolume = 0.9f;
+
     private GameStats stats;
 
     /// <summary>
@@ -90,6 +95,10 @@ public class TreePlanter : MonoBehaviour
 
             // Spawn growable prefab
             GameObject tree = Instantiate(data.growableTreePrefab, hit.point, Quaternion.identity);
+
+            // Plant SFX at the planting spot
+            if (plantSfx) AudioSource.PlayClipAtPoint(plantSfx, hit.point, plantSfxVolume);
+
             TreeGrower grower = tree.GetComponent<TreeGrower>();
             if (grower != null)
             {

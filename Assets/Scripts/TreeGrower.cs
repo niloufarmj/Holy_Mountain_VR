@@ -60,6 +60,15 @@ public class TreeGrower : MonoBehaviour
     GameObject eatingAuraInstance;
     [SerializeField] float auraScaleMultiplier = 1.05f; // 5% larger than the tree
 
+    // --- Add near the top ---
+    [Header("Audio (Growth Loop)")]
+    [SerializeField] private AudioClip growLoopSfx;
+    [SerializeField, Range(0f,1f)] private float growLoopVolume = 0.65f;
+    [SerializeField] private float growMinDistance = 2f;
+    [SerializeField] private float growMaxDistance = 28f;
+
+    private AudioSource _growSrc;
+
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -67,6 +76,20 @@ public class TreeGrower : MonoBehaviour
         rend.materials = currentMats;
         transform.localScale = Vector3.zero;
         if (!auraAttach) auraAttach = transform;
+
+        if (growLoopSfx != null)
+        {
+            _growSrc = gameObject.AddComponent<AudioSource>();
+            _growSrc.playOnAwake = false;
+            _growSrc.loop = true;                         // replay automatically if shorter than growth
+            _growSrc.clip = growLoopSfx;
+            _growSrc.volume = growLoopVolume;
+            _growSrc.spatialBlend = 1f;                   // fully 3D for VR
+            _growSrc.rolloffMode = AudioRolloffMode.Logarithmic;
+            _growSrc.minDistance = growMinDistance;
+            _growSrc.maxDistance = growMaxDistance;
+            _growSrc.spatialize = true;                   // if your XR audio plugin supports it
+        }
     }
 
     /// <summary>
@@ -77,6 +100,9 @@ public class TreeGrower : MonoBehaviour
         isGrowing = true;
         initialGrowDuration = growDuration;
         currentGrowthRate = 1f;
+
+        if (_growSrc && !_growSrc.isPlaying) _growSrc.Play();
+
         BroadcastToNearbyAnimals();
     }
 
@@ -140,6 +166,7 @@ public class TreeGrower : MonoBehaviour
         if (currentScale >= 1f)
         {
             currentPhase = GrowthPhase.FullGrown;
+            if (_growSrc && _growSrc.isPlaying) _growSrc.Stop();  // stop at end of growth
             OnGrowthComplete?.Invoke(this);
             isGrowing = false;
         }
@@ -185,6 +212,7 @@ public class TreeGrower : MonoBehaviour
         // Finalize growth
         if (currentScale >= 1f)
         {
+            if (_growSrc && _growSrc.isPlaying) _growSrc.Stop();
             OnGrowthComplete?.Invoke(this);
             isGrowing = false;
         }
@@ -192,6 +220,7 @@ public class TreeGrower : MonoBehaviour
         // Destroy if fully shrunk
         if (isShrinking && transform.localScale.x <= 0.01f)
         {
+            if (_growSrc && _growSrc.isPlaying) _growSrc.Stop();
             foreach (var animal in currentEaters)
             {
                 if (animal != null)
@@ -225,6 +254,9 @@ public class TreeGrower : MonoBehaviour
         if (!currentEaters.Contains(animal))
             currentEaters.Add(animal);
         activeEaters++;
+
+        // Stop growth SFX while animals are eating
+        if (_growSrc && _growSrc.isPlaying) _growSrc.Pause();
 
         if (eatingAuraInstance == null)
         {
@@ -277,6 +309,14 @@ public class TreeGrower : MonoBehaviour
             eatingAuraInstance.SetActive(false);
             // اگر Prefab Instance ساختی و نمی‌خواهی نگه داری:
             // Destroy(eatingAuraInstance); eatingAuraInstance = null;
+
+            // Animals gone. If still growing, resume the loop.
+            if (isGrowing && _growSrc && !_growSrc.isPlaying)
+            {
+                // If it was paused, UnPause continues smoothly; if it was stopped, Play restarts.
+                _growSrc.UnPause();
+                if (!_growSrc.isPlaying) _growSrc.Play();
+            }
         }
     }
 }

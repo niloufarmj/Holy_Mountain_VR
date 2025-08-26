@@ -109,8 +109,12 @@ MonoBehaviour:
   currentPhase: 0
   damageFactor: 0.5
   attractRadius: 40
-  eatingAuraPrefab: {fileID: 8601389168293037447}
   auraAttach: {fileID: 0}
+  auraScaleMultiplier: 1.05
+  growLoopSfx: {fileID: 8300000, guid: b1a375c4d51ee334b8c5f96566a0a5d2, type: 3}
+  growLoopVolume: 0.65
+  growMinDistance: 2
+  growMaxDistance: 28
 --- !u!1001 &2593916299699286746
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -229,11 +233,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cb662ffc697171a4caaea5b7971e6882, type: 3}
---- !u!1 &8601389168293037447 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6098213378169517917, guid: cb662ffc697171a4caaea5b7971e6882, type: 3}
-  m_PrefabInstance: {fileID: 2593916299699286746}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8941216792157593405 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6911587736581598695, guid: cb662ffc697171a4caaea5b7971e6882, type: 3}

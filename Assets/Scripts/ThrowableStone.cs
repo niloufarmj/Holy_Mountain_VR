@@ -58,6 +58,20 @@ public class ThrowableStone : MonoBehaviour
     private Transform lastThrower;
     private Vector3 initialWorldScale;
 
+    // ----- at the top of ThrowableStone -----
+    [Header("Audio (Animal Hit)")]
+    [SerializeField] private AudioClip animalHitClip;   // single clip
+    [Range(0f, 1f)] public float animalHitVolume = 0.9f;
+    public float minSpeedForSfx = 1.2f;
+    public float maxSpeedForFullVolume = 8f;
+    [Range(0f, 0.25f)] public float pitchJitter = 0.08f;
+    public float sfxCooldown = 0.10f;
+    public float sfxMinDistance = 1.5f;
+    public float sfxMaxDistance = 25f;
+
+    private AudioSource _sfx;
+    private float _nextSfxOkTime;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -71,13 +85,22 @@ public class ThrowableStone : MonoBehaviour
         if (startAsStaticOnGround)
         {
             rb.isKinematic = true;
-            rb.useGravity  = false;
+            rb.useGravity = false;
         }
         else
         {
             rb.isKinematic = false;
-            rb.useGravity  = true;
+            rb.useGravity = true;
         }
+
+        _sfx = gameObject.AddComponent<AudioSource>();
+        _sfx.playOnAwake = false;
+        _sfx.loop = false;
+        _sfx.spatialBlend = 1f; // 3D
+        _sfx.rolloffMode = AudioRolloffMode.Logarithmic;
+        _sfx.minDistance = sfxMinDistance;
+        _sfx.maxDistance = sfxMaxDistance;
+        _sfx.spatialize = true; // if your XR audio plugin supports it
     }
 
     private void Start()
@@ -113,7 +136,7 @@ public class ThrowableStone : MonoBehaviour
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                     rb.isKinematic = true;
-                    rb.useGravity  = false;
+                    rb.useGravity = false;
                 }
             }
             else
@@ -205,9 +228,10 @@ public class ThrowableStone : MonoBehaviour
             Vector3 from = lastThrower ? lastThrower.position
                                     : (transform.position - c.GetContact(0).normal * 0.2f);
             animal.OnHitByStone(from); // ← متد جدید بالا
+
+            PlayAnimalHitSfx(c); // play the single clip here
         }
 
-        // SFX/ذره‌ای برخورد اختیاری...
     }
 
     /// <summary>
@@ -221,12 +245,12 @@ public class ThrowableStone : MonoBehaviour
         if (held)
         {
             rb.isKinematic = true;
-            rb.useGravity  = false;
+            rb.useGravity = false;
         }
         else
         {
             rb.isKinematic = false;
-            rb.useGravity  = true;
+            rb.useGravity = true;
         }
 
         // Optionally disable colliders while held to prevent clipping/collisions
@@ -238,5 +262,24 @@ public class ThrowableStone : MonoBehaviour
         // Ensure highlight is off while held
         if (highlightable && held)
             highlightable.SetHighlighted(false);
+    }
+    
+    // ----- helper inside class -----
+    private void PlayAnimalHitSfx(Collision c)
+    {
+        if (Time.time < _nextSfxOkTime) return;
+        if (animalHitClip == null) return;
+
+        float speed = c.relativeVelocity.magnitude;
+        if (speed < minSpeedForSfx) return;
+
+        float loudness = Mathf.InverseLerp(minSpeedForSfx, maxSpeedForFullVolume, speed);
+        _sfx.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
+
+        // play at the contact point for proper spatialization
+        _sfx.transform.position = c.GetContact(0).point;
+        _sfx.PlayOneShot(animalHitClip, animalHitVolume * loudness);
+
+        _nextSfxOkTime = Time.time + sfxCooldown;
     }
 }
