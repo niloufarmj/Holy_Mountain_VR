@@ -253,7 +253,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.interaction.toolkit": {
-      "version": "3.1.1",
+      "version": "3.1.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -304,7 +304,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.oculus": {
-      "version": "4.5.1",
+      "version": "4.5.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -313,7 +313,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.openxr": {
-      "version": "1.14.2",
+      "version": "1.14.3",
       "depth": 0,
       "source": "registry",
       "dependencies": {

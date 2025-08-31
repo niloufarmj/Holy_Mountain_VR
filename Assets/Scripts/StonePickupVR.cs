@@ -37,6 +37,12 @@ public class StonePickupVR : MonoBehaviour
     public int arcResolution = 24;
     public float previewSpeed = 14f; // باید تقریباً با maxThrowSpeed همخوان باشه
 
+    [Header("Hand Pose Link")]                 // NEW
+    public ControllerHandCurl handCurl;        // NEW
+    public float gripOnPickup = 1f;            // NEW
+    public float gripOnRelease = 0f;           // NEW
+    public bool driveTriggerToIndex = true;    // NEW
+
     void Reset()
     {
         if (stoneLayer.value == 0)
@@ -59,6 +65,10 @@ public class StonePickupVR : MonoBehaviour
         // --- Charge & Throw ---
         bool holdTrig    = OVRInput.Get(throwHoldButton);
         bool releaseTrig = OVRInput.GetUp(throwHoldButton);
+
+        // NEW: وقتی تریگر را نگه می‌داری، اشاره کمی بیشتر جمع شود
+        if (driveTriggerToIndex && handCurl != null)
+            handCurl.SetIndexAdd(holdTrig ? 1f : 0f);
 
         if (held != null && holdTrig)
         {
@@ -126,6 +136,8 @@ public class StonePickupVR : MonoBehaviour
         chargeT = 0f;
         charging = false;
 
+        if (handCurl) handCurl.SetGripTarget(gripOnPickup);   // NEW
+
         // هپتیک کوتاه
         TryBuzz(0.1f, 0.25f, 0.08f);
     }
@@ -137,6 +149,8 @@ public class StonePickupVR : MonoBehaviour
         held = null;
         chargeT = 0f;
         charging = false;
+
+        if (handCurl) { handCurl.SetGripTarget(gripOnRelease); handCurl.SetIndexAdd(0f); } // NEW
     }
 
     void Throw()
@@ -168,6 +182,8 @@ public class StonePickupVR : MonoBehaviour
         held.Throw(velocity, aimOrigin);
         held = null;
         chargeT = 0f;
+
+        if (handCurl) { handCurl.SetGripTarget(gripOnRelease); handCurl.SetIndexAdd(0f); } // NEW
 
         // هپتیک پرتاب
         TryBuzz(0.05f, 0.4f, 0.06f);

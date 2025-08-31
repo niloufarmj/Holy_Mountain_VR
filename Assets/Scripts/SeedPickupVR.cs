@@ -33,6 +33,12 @@ public class SeedPickupVR : MonoBehaviour
 
     private GameStats _stats;
 
+    [Header("Hand Pose Link")]
+    public ControllerHandCurl handCurl;
+    public float collectPulseValue = 0.95f;    // Almost full fist (was 0.6f)
+    public float collectPulseHold = 0.2f;      // Longer hold to see the animation
+    public float collectPulseBack = 0.3f;      // Slower return
+
     void Reset()
     {
         aimOrigin = transform;
@@ -67,9 +73,26 @@ public class SeedPickupVR : MonoBehaviour
         if (seed.TryCollect(_stats))
         {
             Buzz(0.1f, 0.35f, 0.07f);
+
+            if (handCurl)
+            {
+                // Set grip target directly instead of pulsing
+                handCurl.SetGripTarget(collectPulseValue);
+                // Reset after delay
+                Invoke(nameof(ResetHand), collectPulseHold + collectPulseBack);
+            }
+
+            
             if (debugDraw) Debug.Log($"[SeedPickupVR] Collected seed proto={seed.prototypeIndex} by {controller}");
         }
     }
+
+    // Add this method to SeedPickupVR:
+    private void ResetHand()
+    {
+        if (handCurl) handCurl.SetGripTarget(0f);
+    }
+
 
     SeedCollectible FindBestSeed()
     {
