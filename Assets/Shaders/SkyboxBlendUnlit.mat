@@ -38,7 +38,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _SkyboxA:
-        m_Texture: {fileID: 8900000, guid: 7f366e2ef5b515746af2ea5425c50daf, type: 3}
+        m_Texture: {fileID: 8900000, guid: 2e72a76db2572184ba807091fe4e4d82, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SkyboxB:
@@ -59,10 +59,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Blend: 0
+    - _Blend: 0.06666667
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Rotation: 38.039303
+    - _Rotation: 203.60065
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1

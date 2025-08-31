@@ -3,85 +3,95 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Displays and controls the in-game seed inventory selection panel.
-/// - Shows available seed counts per tree prototype.
-/// - Lets the player open the panel (B / Key P), navigate with the right thumbstick,
-///   and select a tree type to plant (consuming one seed).
-/// - On selection, updates the <see cref="TreePlanter"/> and consumes the seed via <see cref="GameStats"/>.
+/// SeedInventoryUI
+///
+/// Handles the in-game seed inventory panel:
+/// - Displays available seed counts for each tree prototype.
+/// - Lets the player open the panel (B on controller / P on keyboard).
+/// - Navigation is done with the right thumbstick (left/right).
+/// - Selecting consumes one seed and passes the choice to <see cref="TreePlanter"/>.
+/// - Seeds are tracked via <see cref="GameStats"/> and automatically update UI on change.
+/// - Supports auto-closing after inactivity (configurable).
+///
+/// ✅ Status: Fully working.
 /// </summary>
 public class SeedInventoryUI : MonoBehaviour
 {
     /// <summary>
-    /// UI row definition for a single tree type entry.
+    /// Represents one UI row/slot in the seed inventory.
+    /// Contains references to UI visuals and the prototype index it represents.
     /// </summary>
     [System.Serializable]
     public class UIItem
     {
-        [Tooltip("Background image for visual state (available/selected/disabled).")]
+        [Tooltip("Background image for state coloring (selected, available, disabled).")]
         public Image background;
 
-        [Tooltip("Icon/image representing the tree type.")]
+        [Tooltip("Icon for the tree type (sprite or image).")]
         public Image treeImage;
 
-        [Tooltip("Text label that shows the available count (e.g., x3).")]
+        [Tooltip("Text showing available count, e.g., 'x3'.")]
         public TextMeshProUGUI countText;
 
-        [Tooltip("Tree prototype index represented by this UI entry.")]
+        [Tooltip("Tree prototype index this slot represents.")]
         public int prototypeIndex;
     }
 
     [Header("UI Elements")]
-    [Tooltip("List of UI entries representing different seed types.")]
+    [Tooltip("All the UI entries that represent seed types.")]
     public UIItem[] items;
 
-    [Tooltip("Root GameObject of the panel that will be toggled on/off.")]
+    [Tooltip("Root panel GameObject that is enabled/disabled when opening/closing.")]
     public GameObject panelRoot;
 
     [Header("UI Colors")]
-    [Tooltip("Background color for the currently selected item.")]
+    [Tooltip("Color used for the currently selected item.")]
     public Color selectedColor = new Color(0.47f, 1f, 0.47f);    // Green
-
-    [Tooltip("Background color for available (but not selected) items.")]
+    [Tooltip("Color used for available (but not selected) items.")]
     public Color availableColor = new Color(0.2f, 0.6f, 1f);     // Blue
-
-    [Tooltip("Background color for items with zero seeds.")]
+    [Tooltip("Color used for disabled items (zero seeds).")]
     public Color disabledColor = new Color(0.67f, 0.67f, 0.67f); // Gray
 
-    // Navigation state
+    // Runtime state
     private int selectedIndex = 0;
     public bool panelOpen = false;
     private float inputCooldown = 0.2f;
     private float lastInputTime;
 
-    // References resolved at runtime
+    // References
     private GameStats stats;
     private TreePlanter planter;
 
-
     [Header("Auto-close")]
+    [Tooltip("If true, the panel will auto-close after inactivity.")]
     public bool autoClose = true;
-    public float autoCloseSeconds = 10f;           // وقتی آیتم داری
-    public float autoCloseWhenEmptySeconds = 5f;   // اگر موجودی 0 بود (دلخواه)
+    [Tooltip("Seconds of inactivity before auto-closing if seeds are available.")]
+    public float autoCloseSeconds = 10f;
+    [Tooltip("Seconds of inactivity before auto-closing if inventory is empty.")]
+    public float autoCloseWhenEmptySeconds = 5f;
+
     private float inactivityTimer = 0f;
 
     private void Start()
     {
         stats = FindObjectOfType<GameStats>();
         planter = FindObjectOfType<TreePlanter>();
-        if (stats) stats.OnSeedsChanged += UpdateUI;   // NEW
+
+        if (stats) stats.OnSeedsChanged += UpdateUI;
         UpdateUI();
+
         panelRoot.SetActive(false);
     }
 
     private void OnDestroy()
     {
-        if (stats) stats.OnSeedsChanged -= UpdateUI;   // NEW
+        if (stats) stats.OnSeedsChanged -= UpdateUI;
     }
 
     private void Update()
     {
-        // Toggle/confirm: B button (OVR secondary) or P key
-        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P)) // B
+        // --- Toggle panel with B button / P key ---
+        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.P))
         {
             if (!panelOpen)
                 OpenPanel();
@@ -91,9 +101,8 @@ public class SeedInventoryUI : MonoBehaviour
 
         if (!panelOpen) return;
 
-        // Horizontal navigation by right thumbstick (Secondary)
+        // --- Navigation with right thumbstick ---
         float horizontal = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x;
-
         if (Mathf.Abs(horizontal) > 0.5f && Time.time - lastInputTime > inputCooldown)
         {
             int dir = horizontal > 0 ? 1 : -1;
@@ -103,54 +112,51 @@ public class SeedInventoryUI : MonoBehaviour
             MarkInteraction();
         }
 
-        // --- Auto-close when idle ---
-        if (panelOpen && autoClose)
+        // --- Auto-close after inactivity ---
+        if (autoClose)
         {
             inactivityTimer += Time.deltaTime;
 
-            // اگر خالیه، زودتر ببنده (اختیاری)
             bool hasAny = false;
             for (int i = 0; i < items.Length; i++)
+            {
                 if (stats.HasSeed(items[i].prototypeIndex)) { hasAny = true; break; }
+            }
 
             float limit = hasAny ? autoCloseSeconds : autoCloseWhenEmptySeconds;
-
             if (inactivityTimer >= limit)
                 ClosePanel();
         }
     }
 
     /// <summary>
-    /// Opens the panel and resets selection to the first item.
+    /// Opens the panel, resets selection, locks planting input.
     /// </summary>
     private void OpenPanel()
     {
         panelOpen = true;
-        inactivityTimer = 0f;       // ← شروع از صفر
+        inactivityTimer = 0f;
         selectedIndex = 0;
         UpdateUI();
         panelRoot.SetActive(true);
 
-        if (planter) planter.inputLocked = true;   // NEW
+        if (planter) planter.inputLocked = true;
     }
 
     /// <summary>
-    /// Closes the panel.
+    /// Closes the panel and unlocks planting input.
     /// </summary>
     private void ClosePanel()
     {
         panelOpen = false;
         panelRoot.SetActive(false);
 
-        if (planter) planter.inputLocked = false;  // NEW
+        if (planter) planter.inputLocked = false;
     }
 
     /// <summary>
-    /// Attempts to select the current item:
-    /// - Verifies seed availability.
-    /// - Sets the planter's selected prototype index.
-    /// - Tries to plant and consumes one seed on success.
-    /// - Closes the panel afterward.
+    /// Attempts to select the currently highlighted item.
+    /// Consumes one seed and forwards the prototype to <see cref="TreePlanter"/>.
     /// </summary>
     private void TrySelect()
     {
@@ -169,7 +175,7 @@ public class SeedInventoryUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Refreshes all UI entries to reflect current counts and selection highlight.
+    /// Refreshes UI entries (counts and background colors).
     /// </summary>
     private void UpdateUI()
     {
@@ -180,22 +186,16 @@ public class SeedInventoryUI : MonoBehaviour
             item.countText.text = $"x{count}";
 
             if (count <= 0)
-            {
                 item.background.color = disabledColor;
-            }
             else if (i == selectedIndex)
-            {
                 item.background.color = selectedColor;
-            }
             else
-            {
                 item.background.color = availableColor;
-            }
         }
     }
 
     /// <summary>
-    /// Helper to retrieve current seed count for a given prototype index from <see cref="GameStats"/>.
+    /// Returns the current count of a seed type.
     /// </summary>
     private int GetSeedCount(int protoIndex)
     {
@@ -207,10 +207,11 @@ public class SeedInventoryUI : MonoBehaviour
         return 0;
     }
 
-    // کمک‌متد برای ریست تایمر
+    /// <summary>
+    /// Resets inactivity timer after user input.
+    /// </summary>
     private void MarkInteraction()
     {
         inactivityTimer = 0f;
     }
-
 }
