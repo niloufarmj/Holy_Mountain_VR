@@ -23,7 +23,7 @@ MonoBehaviour:
   m_terrainWidth: 512
   m_terrainDepth: 512
   m_terrainHeight: 512
-  m_seaLevel: 0
+  m_seaLevel: 3
   m_spawnDensity: 2
   m_isLocked: 0
   m_previewImageBytes: 
@@ -743,24 +743,66 @@ MonoBehaviour:
     sessionPlaybackState: 1
     m_terrainsFoldedOut: 0
     m_serializedExternalAction: 
-  - m_description: Clearing - Trees Details, CurrentTerrainOnly, AnySource
-    m_operationType: 3
+  - m_description: Clear World
+    m_operationType: 10
     m_isActive: 1
-    m_affectedTerrainNames:
-    - Terrain_0_0-20250420 - 183040
-    m_operationDateTime: 5/31/2025 6:13:06 PM
-    scriptableObjectAssetGUID: 4d1b4cf718d79434fbf75505889f7111
+    m_affectedTerrainNames: []
+    m_operationDateTime: 7/29/2025 9:06:17 AM
+    scriptableObjectAssetGUID: 
     m_isFoldedOut: 0
     sessionPlaybackState: 1
     m_terrainsFoldedOut: 0
     m_serializedExternalAction: 
-  - m_description: Spawning - Multiple Spawners (10)
+  - m_description: 'Creating World: 1 x 1 tiles, tile size: 128'
+    m_operationType: 0
+    m_isActive: 1
+    m_affectedTerrainNames:
+    - Terrain_0_0-20250729 - 090618
+    m_operationDateTime: 7/29/2025 9:06:18 AM
+    scriptableObjectAssetGUID: a43e1e031cb5ea345bb543e43e265dff
+    m_isFoldedOut: 0
+    sessionPlaybackState: 1
+    m_terrainsFoldedOut: 0
+    m_serializedExternalAction: 
+  - m_description: Spawning - Multiple Spawners (9)
     m_operationType: 7
     m_isActive: 1
     m_affectedTerrainNames:
-    - Terrain_0_0-20250420 - 183040
-    m_operationDateTime: 6/12/2025 5:41:20 PM
-    scriptableObjectAssetGUID: fee7b8eb8a9295042b4657c2c601bd38
+    - Terrain_0_0-20250729 - 090618
+    m_operationDateTime: 7/29/2025 9:07:34 AM
+    scriptableObjectAssetGUID: fd86c5d554f56b5458f73d75b280b8a0
+    m_isFoldedOut: 0
+    sessionPlaybackState: 1
+    m_terrainsFoldedOut: 0
+    m_serializedExternalAction: 
+  - m_description: Clear World
+    m_operationType: 10
+    m_isActive: 1
+    m_affectedTerrainNames: []
+    m_operationDateTime: 8/31/2025 5:01:15 PM
+    scriptableObjectAssetGUID: 
+    m_isFoldedOut: 0
+    sessionPlaybackState: 1
+    m_terrainsFoldedOut: 0
+    m_serializedExternalAction: 
+  - m_description: 'Creating World: 1 x 1 tiles, tile size: 128'
+    m_operationType: 0
+    m_isActive: 1
+    m_affectedTerrainNames:
+    - Terrain_0_0-20250831 - 170116
+    m_operationDateTime: 8/31/2025 5:01:17 PM
+    scriptableObjectAssetGUID: 8fb1ccccb044ad947aa1bec20661e5a5
+    m_isFoldedOut: 0
+    sessionPlaybackState: 1
+    m_terrainsFoldedOut: 0
+    m_serializedExternalAction: 
+  - m_description: Spawning - Multiple Spawners (9)
+    m_operationType: 7
+    m_isActive: 1
+    m_affectedTerrainNames:
+    - Terrain_0_0-20250831 - 170116
+    m_operationDateTime: 8/31/2025 5:03:18 PM
+    scriptableObjectAssetGUID: 59271fc79102fa441a69676aa48db481
     m_isFoldedOut: 0
     sessionPlaybackState: 1
     m_terrainsFoldedOut: 0
@@ -781,24 +823,25 @@ MonoBehaviour:
     recalculate: 0
     min: 0
     max: 8.625132
+  - guid: 32bc8e377831ac544bc14997d01e40ba
+    isWorldmap: 0
+    recalculate: 0
+    min: 0
+    max: 30.934065
+  - guid: 
+    isWorldmap: 0
+    recalculate: 1
+    min: 0
+    max: 0
   - guid: Worldmap
     isWorldmap: 1
     recalculate: 0
-    min: 5.1029305
-    max: 89.27815
-  m_bakedMaskCacheEntries:
-  - fileName: Terrain_0_0-20250420 - 183040_LayerTree_1024_0
-    assetPath: Assets/Procedural Worlds/Packages - Install/Gaia/TerrainCollisionData/Terrain_0_0-20250420
-      - 183040/Terrain_0_0-20250420 - 183040_LayerTree_1024_0
-    fullPath: D:/FH Uni/2nd sem project/My project/Assets/Procedural Worlds/Packages
-      - Install/Gaia/TerrainCollisionData/Terrain_0_0-20250420 - 183040/Terrain_0_0-20250420
-      - 183040_LayerTree_1024_0
-    texture: {fileID: 0}
-  - fileName: Terrain_0_0-20250420 - 183040_LayerTree_2048_0
-    assetPath: Assets/Procedural Worlds/Packages - Install/Gaia/TerrainCollisionData/Terrain_0_0-20250420
-      - 183040/Terrain_0_0-20250420 - 183040_LayerTree_2048_0
-    fullPath: D:/FH Uni/2nd sem project/My project/Assets/Procedural Worlds/Packages
-      - Install/Gaia/TerrainCollisionData/Terrain_0_0-20250420 - 183040/Terrain_0_0-20250420
-      - 183040_LayerTree_2048_0
-    texture: {fileID: 0}
+    min: 0.2715845
+    max: 23.036722
+  - guid: d3aa6c91cb526374884e09ce542443ca
+    isWorldmap: 0
+    recalculate: 0
+    min: 0
+    max: 45.57882
+  m_bakedMaskCacheEntries: []
   m_worldBiomeMaskSettings: {fileID: 0}

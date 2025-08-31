@@ -8,7 +8,7 @@ PlayerSettings:
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
-  defaultScreenOrientation: 4
+  defaultScreenOrientation: 3
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
@@ -141,7 +141,13 @@ PlayerSettings:
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
   bundleVersion: 0.1.0
-  preloadedAssets: []
+  preloadedAssets:
+  - {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  - {fileID: 11400000, guid: 8637ac3cc6ba5d34da9ca7f255ef900a, type: 2}
+  - {fileID: 6042024606909390748, guid: 7bbe3ad69f74b0240ac04ef86aefb69c, type: 2}
+  - {fileID: 11400000, guid: b478c93fc6255544b99c6492d2d5cc2d, type: 2}
+  - {fileID: 3516943040522124221, guid: e431ddccf909f344da3d4c0f0bf91d66, type: 2}
+  - {fileID: 11400000, guid: ae029eeb3ddf62343885128d8713d605, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -817,6 +823,7 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
+    Android: GAIA_INPUT_SYSTEM;GAIA_2023;GAIA_2023_PRO;GAIA_MESH_PRESENT
     Standalone: GAIA_INPUT_SYSTEM;UPPipeline;GAIA_2023;GAIA_2023_PRO;GAIA_MESH_PRESENT
   additionalCompilerArguments: {}
   platformArchitecture: {}

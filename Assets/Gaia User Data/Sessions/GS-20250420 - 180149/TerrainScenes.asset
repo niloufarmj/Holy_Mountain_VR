@@ -19,7 +19,7 @@ MonoBehaviour:
   m_colliderOnlyLoading: 0
   m_terrainTilesX: 1
   m_terrainTilesZ: 1
-  m_terrainTilesSize: 512
+  m_terrainTilesSize: 128
   m_useFloatingPointFix: 0
   m_hasWorldMap: 1
   m_worldMaprelativeSize: 0.5
@@ -34,5 +34,5 @@ MonoBehaviour:
   m_deactivateRuntimeWeather: 0
   m_deactivateRuntimeWater: 0
   m_deactivateRuntimeScreenShotter: 0
-  m_pos00X: -256
-  m_pos00Z: -256
+  m_pos00X: -64
+  m_pos00Z: -64

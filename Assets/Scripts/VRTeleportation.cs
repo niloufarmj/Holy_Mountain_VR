@@ -7,7 +7,7 @@ public class VRTeleportation : MonoBehaviour
     public Transform playerRoot;
     public LayerMask teleportLayers;
     public float maxDistance = 10f;
-    public OVRInput.Button teleportButton = OVRInput.Button.SecondaryIndexTrigger;
+    public OVRInput.Button teleportButton = OVRInput.Button.PrimaryIndexTrigger;
 
     void Update()
     {

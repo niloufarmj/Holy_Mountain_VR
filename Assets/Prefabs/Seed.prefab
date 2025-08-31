@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 5616185052016152560}
   - component: {fileID: 2557364399222178946}
   - component: {fileID: 7526349262428263350}
-  - component: {fileID: 7861013176890904225}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: Seed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,27 +88,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &7861013176890904225
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1290034391976402263}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1701927568308503057
 GameObject:
   m_ObjectHideFlags: 0
@@ -121,7 +99,7 @@ GameObject:
   - component: {fileID: 4797796285995801797}
   - component: {fileID: 521661225410671458}
   - component: {fileID: 747300961375131193}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: GoldenBlingBling (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -267,7 +245,7 @@ GameObject:
   - component: {fileID: 6345903378318653452}
   - component: {fileID: 302405556247628674}
   - component: {fileID: 2275112658598411022}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: SeedCollect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -321,5 +299,5 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.9425714
-  m_Center: {x: -0.0067158933, y: 0.17396216, z: -0.0062766667}
+  m_Radius: 0.69
+  m_Center: {x: 0, y: 0, z: 0}

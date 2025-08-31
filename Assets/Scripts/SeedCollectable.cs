@@ -1,76 +1,30 @@
+// SeedCollectible.cs  (PASSIVE version)
+// Put this on each seed prefab (usually on the visible child). 
+// Holds prototypeIndex and exposes TryCollect(...) for the controller.
 using UnityEngine;
-using System.Collections;
 
 public class SeedCollectible : MonoBehaviour
 {
-    private bool playerInRange = false;
-
-    [Tooltip("نوع درختی که این بذر متعلق به آن است.")]
+    [Tooltip("Tree prototype index this seed belongs to.")]
     public int prototypeIndex;
 
-    void OnTriggerEnter(Collider other)
+    private bool _collected = false;
+
+    /// <summary>
+    /// Increments seed count in GameStats and removes the seed from the scene.
+    /// Returns true if collection happened now, false if already collected.
+    /// </summary>
+    public bool TryCollect(GameStats stats)
     {
-        Debug.Log($"[SeedCollectible] OnTriggerEnter: {other.name}");
+        if (_collected) return false;
+        _collected = true;
 
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-            Debug.Log("[SeedCollectible] Player entered trigger zone.");
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        Debug.Log($"[SeedCollectible] OnTriggerExit: {other.name}");
-
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = false;
-            Debug.Log("[SeedCollectible] Player exited trigger zone.");
-        }
-    }
-
-    void Update()
-    {
-        if (playerInRange)
-        {
-            Debug.Log("[SeedCollectible] Player in range. Waiting for input...");
-
-            // Check VR input or keyboard fallback
-            bool isCollectPressed = false;
-
-            if (OVRInput.IsControllerConnected(OVRInput.Controller.RTouch))
-            {
-                isCollectPressed = OVRInput.GetDown(OVRInput.Button.One); // A button on Oculus
-            }
-            else
-            {
-                isCollectPressed = Input.GetKeyDown(KeyCode.E); // fallback to E key on keyboard
-            }
-
-            if (isCollectPressed)
-            {
-                Debug.Log("[SeedCollectible] Collect input detected. Collecting...");
-                Collect();
-            }
-        }
-    }
-
-    void Collect()
-    {
-        Debug.Log("[SeedCollectible] Collect() called!");
-
-        GameStats stats = FindObjectOfType<GameStats>();
         if (stats != null)
-        {
             stats.AddSeed(prototypeIndex);
-            Debug.Log("[SeedCollectible] Seed count increased.");
-        }
-        else
-        {
-            Debug.LogWarning("[SeedCollectible] GameStats not found!");
-        }
 
-        Destroy(transform.parent.gameObject);
+        // Keep old behaviour: remove the whole seed object (child or root)
+        var root = transform.parent ? transform.parent.gameObject : gameObject;
+        Object.Destroy(root);
+        return true;
     }
 }

@@ -13,7 +13,7 @@ public class VRArcTeleport : MonoBehaviour
     public int arcResolution = 30;
     public float maxDistance = 15f;
     public LayerMask teleportLayer;
-    public OVRInput.Button teleportButton = OVRInput.Button.SecondaryIndexTrigger;
+    public OVRInput.Button teleportButton = OVRInput.Button.PrimaryIndexTrigger;
 
     private Vector3 hitPoint;
     private bool isValidTeleport;
