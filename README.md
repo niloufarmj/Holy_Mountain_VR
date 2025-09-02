@@ -59,7 +59,8 @@ Tip: Keep reflection and post-processing settings conservative on low-end GPUs f
 
 ## 📦 Downloads
 
-- **Playable build (zip):** [Google Drive](https://drive.google.com/file/d/1cT01Ly9-xfOuwSYaXGYq_J7_j-M96Xmh/view?usp=sharing)
+- **Playable build (zip):** [Google Drive](https://drive.google.com/file/d/1cT01Ly9-xfOuwSYaXGYq_J7_j-M96Xmh/view?usp=drive_link)
+- **Animals Pack:** [Google Drive](https://drive.google.com/drive/folders/15vJRhhoRFxcZWIs3Og38SsLiaffdhrts?usp=sharing)
 
 ---
 
@@ -110,13 +111,30 @@ Tip: Keep reflection and post-processing settings conservative on low-end GPUs f
 
 ---
 
+## 📷 Screenshots
+
+<img width="1596" height="583" alt="UI-SeedSelection" src="https://github.com/user-attachments/assets/ccb31e90-de76-42f5-aaa4-d05f2c63fd0e" />
+
+<img width="323" height="458" alt="Tree Growth Phases (1)" src="https://github.com/user-attachments/assets/43220487-bb02-4be7-a78a-42b7482a025f" />
+<img width="266" height="438" alt="Tree Growth Phases (2)" src="https://github.com/user-attachments/assets/690a1707-6c7a-4a5c-9253-abe77d670540" />
+<img width="245" height="433" alt="Tree Growth Phases (3)" src="https://github.com/user-attachments/assets/2b91ee68-a308-4f7f-8ba0-3f58c1fc25af" />
+
+<img width="1291" height="722" alt="Night Environment" src="https://github.com/user-attachments/assets/fd379978-b9fd-47ae-a366-4d0443dcc054" />
+<img width="1074" height="600" alt="Sunset Environment" src="https://github.com/user-attachments/assets/6a2ed14f-53ac-4268-b403-800b5036d6fa" />
+<img width="1296" height="719" alt="Environment" src="https://github.com/user-attachments/assets/b623d52e-bf54-4e54-b902-6eaf7dd7a344" />
+<img width="1307" height="725" alt="Environment (2)" src="https://github.com/user-attachments/assets/d9b993d9-8e1c-4bbd-a189-575194ac0f3d" />
+<img width="1288" height="709" alt="Animal" src="https://github.com/user-attachments/assets/21aed6f1-d88b-470f-80bd-f2b62f05325d" />
+
+<img width="1296" height="721" alt="Highlited Stone" src="https://github.com/user-attachments/assets/d2bad99e-4f1c-4992-a587-03c34d222f9b" />
+<img width="1295" height="713" alt="Stone In Hand Aim" src="https://github.com/user-attachments/assets/73a7b7e7-99e6-4afb-9184-45b5b1502225" />
+<img width="1130" height="715" alt="Aim Animal" src="https://github.com/user-attachments/assets/3b25a0be-a8bf-47e6-a53c-fe2009e338e0" />
+
+
+
+---
+
 ## 👤 Author
 
 **Niloufar Moradijam** — Master’s Semester Project (Interactive Media)  
 Hagenberg, September 2025
 
----
-
-## 🧾 License
-
-TBD (add a LICENSE file—MIT recommended unless assets impose restrictions).
