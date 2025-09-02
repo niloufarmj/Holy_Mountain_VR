@@ -115,7 +115,7 @@ Tip: Keep reflection and post-processing settings conservative on low-end GPUs f
 
 <img width="1596" height="583" alt="UI-SeedSelection" src="https://github.com/user-attachments/assets/ccb31e90-de76-42f5-aaa4-d05f2c63fd0e" />
 
-<img width="323" height="458" alt="Tree Growth Phases (1)" src="https://github.com/user-attachments/assets/43220487-bb02-4be7-a78a-42b7482a025f" />
+<img width="268" height="457" alt="Tree Growth Phases (1)" src="https://github.com/user-attachments/assets/b9889050-8ac1-44b4-8383-c46fb7d06716" />
 <img width="266" height="438" alt="Tree Growth Phases (2)" src="https://github.com/user-attachments/assets/690a1707-6c7a-4a5c-9253-abe77d670540" />
 <img width="245" height="433" alt="Tree Growth Phases (3)" src="https://github.com/user-attachments/assets/2b91ee68-a308-4f7f-8ba0-3f58c1fc25af" />
 
